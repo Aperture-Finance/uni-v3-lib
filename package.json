@@ -5,7 +5,7 @@
   "license": "GPL-2.0-or-later",
   "scripts": {
     "build": "forge build",
-    "compile": "hardhat complie",
+    "compile": "hardhat compile",
     "test": "forge test",
     "snapshot": "forge snapshot",
     "snapshot:diff": "forge snapshot --diff",

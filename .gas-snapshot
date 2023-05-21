@@ -1,0 +1,6 @@
+BitMathTest:testFuzz_LSB(uint256) (runs: 65536, μ: 5429, ~: 5419)
+BitMathTest:testFuzz_MSB(uint256) (runs: 65536, μ: 5286, ~: 5464)
+BitMathTest:testGas_LSB() (gas: 65800)
+BitMathTest:testGas_LSB_Og() (gas: 221081)
+BitMathTest:testGas_MSB() (gas: 77209)
+BitMathTest:testGas_MSB_Og() (gas: 201951)

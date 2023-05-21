@@ -17,7 +17,7 @@ ffi = false
 fs_permissions = [{ access = "read", path = "./artifacts"}]
 
 [fuzz]
-runs = 256
+runs = 65536
 seed = 42
 
 [rpc_endpoints]
