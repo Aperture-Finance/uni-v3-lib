@@ -2,7 +2,7 @@
 pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {INonfungiblePositionManager as INPM, IERC721Permit} from "@uniswap/v3-periphery/contracts/interfaces/INonfungiblePositionManager.sol";
+import {INonfungiblePositionManager as INPM, IERC721Permit} from "./interfaces/INonfungiblePositionManager.sol";
 
 // details about the uniswap position
 struct PositionFull {
