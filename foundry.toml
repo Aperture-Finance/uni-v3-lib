@@ -2,5 +2,25 @@
 src = "src"
 out = "out"
 libs = ["lib"]
+test = 'test'
+cache = true
+
+solc_version = '0.8.20'
+optimizer = true
+optimizer_runs = 4294967295
+via_ir = false
+bytecode_hash = 'none'
+sparse_mode = true
+
+verbosity = 2
+ffi = false
+fs_permissions = [{ access = "read", path = "./artifacts"}]
+
+[fuzz]
+runs = 256
+seed = 42
+
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC_URL}"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

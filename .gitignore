@@ -1,6 +1,14 @@
+DS_Store
+.idea
+node_modules
+
 # Compiler files
 cache/
 out/
+
+# Hardhat cache
+artifacts
+cache_hardhat
 
 # Ignores development broadcast logs
 !/broadcast

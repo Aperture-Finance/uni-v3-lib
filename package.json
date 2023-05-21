@@ -1,0 +1,34 @@
+{
+  "name": "uni-v3-lib",
+  "version": "0.1.0",
+  "author": "Aperture Finance",
+  "license": "GPL-2.0-or-later",
+  "scripts": {
+    "build": "forge build",
+    "compile": "hardhat complie",
+    "test": "forge test",
+    "snapshot": "forge snapshot",
+    "snapshot:diff": "forge snapshot --diff",
+    "prettier": "prettier -c {src,test}/**/*.sol",
+    "prettier:fix": "prettier -w {src,test}/**/*.sol"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.3",
+    "@uniswap/v3-core": "^1.0.1",
+    "@uniswap/v3-periphery": "^1.4.3"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
+    "hardhat": "^2.14.0",
+    "prettier": "^2.8.8",
+    "prettier-plugin-solidity": "^1.1.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "prettier": {
+    "plugins": [
+      "prettier-plugin-solidity"
+    ],
+    "endOfLine": "crlf"
+  }
+}
