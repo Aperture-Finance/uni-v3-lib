@@ -11,6 +11,10 @@ struct PoolKey {
 /// @title Provides functions for deriving a pool address from the factory, tokens, and the fee
 /// @author Aperture Finance
 /// @author Modified from Uniswap (https://github.com/uniswap/v3-periphery/blob/main/contracts/libraries/PoolAddress.sol)
+/// @dev Some functions in this library knowingly create dirty bits at the destination of the free memory pointer.
+/// However, this is safe because "Note that you do not need to update the free memory pointer if there is no following
+/// allocation, but you can only use memory starting from the current offset given by the free memory pointer."
+/// according to https://docs.soliditylang.org/en/latest/assembly.html#memory-safety.
 library PoolAddress {
     bytes32 internal constant POOL_INIT_CODE_HASH =
         0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
@@ -25,7 +29,8 @@ library PoolAddress {
         address tokenB,
         uint24 fee
     ) internal pure returns (PoolKey memory key) {
-        assembly ("memory-safe") {
+        /// @solidity memory-safe-assembly
+        assembly {
             // Sort `tokenA` and `tokenB`
             let diff := mul(xor(tokenA, tokenB), lt(tokenB, tokenA))
             mstore(key, xor(tokenA, diff))
@@ -44,7 +49,8 @@ library PoolAddress {
         address token1,
         uint24 fee
     ) internal pure returns (PoolKey memory key) {
-        assembly ("memory-safe") {
+        /// @solidity memory-safe-assembly
+        assembly {
             mstore(key, token0)
             mstore(add(key, 0x20), token1)
             mstore(add(key, 0x40), fee)
@@ -72,7 +78,8 @@ library PoolAddress {
         address factory,
         PoolKey memory key
     ) internal pure returns (address pool) {
-        assembly ("memory-safe") {
+        /// @solidity memory-safe-assembly
+        assembly {
             let fmp := mload(0x40)
             mstore(fmp, factory)
             fmp := add(fmp, 0x0b)
@@ -97,7 +104,7 @@ library PoolAddress {
         address tokenB,
         uint24 fee
     ) internal pure returns (address pool) {
-        assembly ("memory-safe") {
+        assembly {
             // Sort `tokenA` and `tokenB`
             let diff := mul(xor(tokenA, tokenB), lt(tokenB, tokenA))
             tokenA := xor(tokenA, diff)
@@ -118,7 +125,8 @@ library PoolAddress {
         address tokenB,
         uint24 fee
     ) internal pure returns (address pool) {
-        assembly ("memory-safe") {
+        /// @solidity memory-safe-assembly
+        assembly {
             // Get the free memory pointer.
             let fmp := mload(0x40)
             // Hash the pool key.
@@ -149,7 +157,8 @@ library PoolAddress {
         address factory,
         bytes calldata key
     ) internal pure returns (address pool) {
-        assembly ("memory-safe") {
+        /// @solidity memory-safe-assembly
+        assembly {
             // Get the free memory pointer.
             let fmp := mload(0x40)
             // Hash the pool key.
