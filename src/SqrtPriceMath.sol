@@ -5,6 +5,7 @@ import "@uniswap/v3-core/contracts/libraries/SafeCast.sol";
 import "@uniswap/v3-core/contracts/libraries/FixedPoint96.sol";
 
 import "./FullMath.sol";
+import "./TernaryLib.sol";
 import "./UnsafeMath.sol";
 
 /// @title Functions based on Q64.96 sqrt price and liquidity
@@ -182,19 +183,6 @@ library SqrtPriceMath {
                 );
     }
 
-    /// @notice Sorts two uint160s and returns them in ascending order
-    function sort2(
-        uint160 a,
-        uint160 b
-    ) internal pure returns (uint160, uint160) {
-        assembly {
-            let diff := mul(xor(a, b), lt(b, a))
-            a := xor(a, diff)
-            b := xor(b, diff)
-        }
-        return (a, b);
-    }
-
     /// @notice Gets the amount0 delta between two prices
     /// @dev Calculates liquidity / sqrt(lower) - liquidity / sqrt(upper),
     /// i.e. liquidity * (sqrt(upper) - sqrt(lower)) / (sqrt(upper) * sqrt(lower))
@@ -209,7 +197,7 @@ library SqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount0) {
-        (sqrtRatioX96Lower, sqrtRatioX96Upper) = sort2(
+        (sqrtRatioX96Lower, sqrtRatioX96Upper) = TernaryLib.sort2(
             sqrtRatioX96Lower,
             sqrtRatioX96Upper
         );
@@ -268,7 +256,7 @@ library SqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount1) {
-        (sqrtRatioX96Lower, sqrtRatioX96Upper) = sort2(
+        (sqrtRatioX96Lower, sqrtRatioX96Upper) = TernaryLib.sort2(
             sqrtRatioX96Lower,
             sqrtRatioX96Upper
         );
