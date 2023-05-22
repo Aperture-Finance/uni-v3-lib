@@ -2,8 +2,8 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import {FullMath} from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
-import {IFullMath} from "./interfaces/IFullMath.sol";
+import "@uniswap/v3-core/contracts/libraries/FullMath.sol";
+import "./interfaces/IFullMath.sol";
 
 /// @dev Expose internal functions to test the FullMath library.
 contract FullMathTest is IFullMath {

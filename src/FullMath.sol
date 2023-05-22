@@ -10,6 +10,10 @@ import "lib/solady/src/utils/FixedPointMathLib.sol";
 /// @notice Facilitates multiplication and division that can have overflow of an intermediate value without any loss of precision
 /// @dev Handles "phantom overflow" i.e., allows multiplication and division where an intermediate value overflows 256 bits
 library FullMath {
+    /// @dev The full precision multiply-divide operation failed, either due
+    /// to the result being larger than 256 bits, or a division by a zero.
+    error FullMulDivFailed();
+
     /// @notice Calculates floor(a×b÷denominator) with full precision. Throws if result overflows a uint256 or denominator == 0
     /// @param a The multiplicand
     /// @param b The multiplier
