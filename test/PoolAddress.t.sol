@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
-import {IPoolAddressWrapper} from "src/test/interfaces/IPoolAddressWrapper.sol";
+import {IPoolAddress} from "src/test/interfaces/IPoolAddress.sol";
 import {PoolAddress} from "src/PoolAddress.sol";
+import "./Base.t.sol";
 
 /// @dev Expose internal functions to test the PoolAddress library.
 contract PoolAddressCallable {
@@ -16,32 +16,14 @@ contract PoolAddressCallable {
 }
 
 /// @dev Test pool address computed using assembly against the original PoolAddress library.
-contract PoolAddressTest is Test {
-    address constant factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
+contract PoolAddressTest is BaseTest {
     // Wrapper that exposes the original PoolAddress library.
-    IPoolAddressWrapper wrapper = IPoolAddressWrapper(makeAddr("wrapper"));
+    IPoolAddress wrapper = IPoolAddress(makeAddr("wrapper"));
     PoolAddressCallable caller;
 
-    /// @dev Deploy a test wrapper with `name` to `lib` using `vm.etch`.
-    function makeOriginalLibrary(address lib, string memory name) internal {
-        string memory file = string.concat(
-            vm.projectRoot(),
-            "/artifacts/src/test/",
-            name,
-            ".sol/",
-            name,
-            ".json"
-        );
-        bytes memory deployedBytecode = vm.parseJsonBytes(
-            vm.readFile(file),
-            ".deployedBytecode"
-        );
-        vm.etch(lib, deployedBytecode);
-    }
-
-    function setUp() public {
+    function setUp() public override {
         caller = new PoolAddressCallable();
-        makeOriginalLibrary(address(wrapper), "PoolAddressWrapper");
+        makeOriginalLibrary(address(wrapper), "PoolAddressTest");
     }
 
     function testFuzz_ComputeAddress(
@@ -52,9 +34,9 @@ contract PoolAddressTest is Test {
         vm.assume(tokenA != tokenB);
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
-            PoolAddress.computeAddress(factory, tokenA, tokenB, fee),
+            PoolAddress.computeAddress(address(factory), tokenA, tokenB, fee),
             wrapper.computeAddress(
-                factory,
+                address(factory),
                 wrapper.getPoolKey(tokenA, tokenB, fee)
             )
         );
@@ -69,11 +51,11 @@ contract PoolAddressTest is Test {
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
             PoolAddress.computeAddress(
-                factory,
+                address(factory),
                 PoolAddress.getPoolKey(tokenA, tokenB, fee)
             ),
             wrapper.computeAddress(
-                factory,
+                address(factory),
                 wrapper.getPoolKey(tokenA, tokenB, fee)
             )
         );
@@ -88,11 +70,11 @@ contract PoolAddressTest is Test {
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
             caller.computeAddressCalldata(
-                factory,
+                address(factory),
                 abi.encode(PoolAddress.getPoolKey(tokenA, tokenB, fee))
             ),
             wrapper.computeAddress(
-                factory,
+                address(factory),
                 wrapper.getPoolKey(tokenA, tokenB, fee)
             )
         );

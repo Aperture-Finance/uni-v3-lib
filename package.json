@@ -4,7 +4,7 @@
   "author": "Aperture Finance",
   "license": "GPL-2.0-or-later",
   "scripts": {
-    "build": "forge build",
+    "clean": "hardhat clean && forge clean",
     "compile": "hardhat compile",
     "test": "forge test",
     "snapshot": "forge snapshot",

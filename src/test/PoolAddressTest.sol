@@ -3,10 +3,10 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 
 import {PoolAddress} from "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
-import {IPoolAddressWrapper} from "./interfaces/IPoolAddressWrapper.sol";
+import {IPoolAddress} from "./interfaces/IPoolAddress.sol";
 
 /// @dev Expose internal functions to test the PoolAddress library.
-contract PoolAddressWrapper is IPoolAddressWrapper {
+contract PoolAddressTest is IPoolAddress {
     function getPoolKey(
         address tokenA,
         address tokenB,
