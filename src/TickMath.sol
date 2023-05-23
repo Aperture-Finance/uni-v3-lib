@@ -12,7 +12,7 @@ library TickMath {
     /// @dev The minimum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**-128
     int24 internal constant MIN_TICK = -887272;
     /// @dev The maximum tick that may be passed to #getSqrtRatioAtTick computed from log base 1.0001 of 2**128
-    int24 internal constant MAX_TICK = -MIN_TICK;
+    int24 internal constant MAX_TICK = 887272;
 
     /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
     uint160 internal constant MIN_SQRT_RATIO = 4295128739;
@@ -30,6 +30,7 @@ library TickMath {
     ) internal pure returns (uint160 sqrtPriceX96) {
         unchecked {
             uint256 absTick;
+            /// @solidity memory-safe-assembly
             assembly {
                 // Credit to Solady (https://github.com/Vectorized/solady/blob/1873046d2ed3428e236d83682f302afde369b2c2/src/utils/FixedPointMathLib.sol#L620)
                 // mask = 0 if tick >= 0 else -1
@@ -38,8 +39,18 @@ library TickMath {
                 tick := signextend(2, tick)
                 let mask := sub(0, slt(tick, 0))
                 absTick := xor(mask, add(mask, tick))
+                // Equivalent: if (absTick > MAX_TICK) revert("T");
+                if gt(absTick, MAX_TICK) {
+                    // selector "Error(string)", [0x1c, 0x20)
+                    mstore(0, 0x08c379a0)
+                    // abi encoding offset
+                    mstore(0x20, 0x20)
+                    // reason string length 1 and 'T', [0x5f, 0x61)
+                    mstore(0x41, 0x0154)
+                    // 4 byte selector + 32 byte offset + 32 byte length + 1 byte reason
+                    revert(0x1c, 0x45)
+                }
             }
-            if (absTick > 887272) revert("T");
 
             // Equivalent: ratio = 2**128 / sqrt(1.0001) if absTick & 0x1 else 1 << 128
             uint256 ratio;
@@ -122,9 +133,24 @@ library TickMath {
     function getTickAtSqrtRatio(
         uint160 sqrtPriceX96
     ) internal pure returns (int24 tick) {
-        // second inequality must be >= because the price can never reach the price at the max tick
-        if (sqrtPriceX96 < MIN_SQRT_RATIO || sqrtPriceX96 >= MAX_SQRT_RATIO)
-            revert("R");
+        // Equivalent: if (sqrtPriceX96 < MIN_SQRT_RATIO || sqrtPriceX96 >= MAX_SQRT_RATIO) revert("R");
+        /// @solidity memory-safe-assembly
+        assembly {
+            // second inequality must be >= because the price can never reach the price at the max tick
+            if or(
+                lt(sqrtPriceX96, MIN_SQRT_RATIO),
+                iszero(lt(sqrtPriceX96, MAX_SQRT_RATIO))
+            ) {
+                // selector "Error(string)", [0x1c, 0x20)
+                mstore(0, 0x08c379a0)
+                // abi encoding offset
+                mstore(0x20, 0x20)
+                // reason string length 1 and 'R', [0x5f, 0x61)
+                mstore(0x41, 0x0152)
+                // 4 byte selector + 32 byte offset + 32 byte length + 1 byte reason
+                revert(0x1c, 0x45)
+            }
+        }
 
         // Find the most significant bit of `sqrtPriceX96`, 160 > msb >= 32.
         uint8 msb = BitMath.mostSignificantBit(sqrtPriceX96);
@@ -135,6 +161,7 @@ library TickMath {
         // sqrtPrice = 2**(msb - 96) * ratio / 2**127
         uint256 ratio;
         assembly {
+            // Shift left first because 160 > msb >= 32. If we shift right first, we'll lose precision.
             ratio := shr(sub(msb, 31), shl(96, sqrtPriceX96))
         }
 
@@ -164,7 +191,7 @@ library TickMath {
                 let r2 := mul(r, r)
                 // f = (r**2 >= 2**255)
                 f := slt(r2, 0)
-                // _r = r**2 >> 128 if r >= 2**255 else r**2 >> 127
+                // _r = r**2 >> 128 if r**2 >= 2**255 else r**2 >> 127
                 _r := shr(add(127, f), r2)
             }
             let r, f := ge_sqrt2(ratio)

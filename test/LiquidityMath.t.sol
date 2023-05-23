@@ -5,7 +5,7 @@ import {ILiquidityMath} from "src/test/interfaces/ILiquidityMath.sol";
 import {LiquidityMath} from "src/LiquidityMath.sol";
 import "./Base.t.sol";
 
-contract LiquidityMathWrapper {
+contract LiquidityMathWrapper is ILiquidityMath {
     function addDelta(uint128 x, int128 y) external pure returns (uint128) {
         return LiquidityMath.addDelta(x, y);
     }
@@ -15,9 +15,10 @@ contract LiquidityMathWrapper {
 contract LiquidityMathTest is BaseTest {
     // Wrapper that exposes the original LiquidityMath library.
     ILiquidityMath internal ogWrapper = ILiquidityMath(makeAddr("wrapper"));
-    LiquidityMathWrapper internal wrapper = new LiquidityMathWrapper();
+    LiquidityMathWrapper internal wrapper;
 
     function setUp() public override {
+        wrapper = new LiquidityMathWrapper();
         makeOriginalLibrary(address(ogWrapper), "LiquidityMathTest");
     }
 
