@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {ISqrtPriceMath} from "src/test/interfaces/ISqrtPriceMath.sol";
-import {SqrtPriceMath} from "src/SqrtPriceMath.sol";
+import {TickMath} from "src/TickMath.sol";
+import "src/SqrtPriceMath.sol";
 import "./Base.t.sol";
 
 contract SqrtPriceMathWrapper is ISqrtPriceMath {
@@ -140,12 +141,21 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amount,
         bool add
     ) external {
-        try ogWrapper.getNextSqrtPriceFromAmount0RoundingUp(
-            sqrtPX96,
-            liquidity,
-            amount,
-            add
-        ) returns (uint160 expected) {
+        sqrtPX96 = uint160(
+            bound(
+                sqrtPX96,
+                TickMath.MIN_SQRT_RATIO,
+                TickMath.MAX_SQRT_RATIO - 1
+            )
+        );
+        try
+            ogWrapper.getNextSqrtPriceFromAmount0RoundingUp(
+                sqrtPX96,
+                liquidity,
+                amount,
+                add
+            )
+        returns (uint160 expected) {
             assertEq(
                 wrapper.getNextSqrtPriceFromAmount0RoundingUp(
                     sqrtPX96,
@@ -164,12 +174,27 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amount,
         bool add
     ) external {
-        try ogWrapper.getNextSqrtPriceFromAmount1RoundingDown(
-            sqrtPX96,
-            liquidity,
+        liquidity = uint128(bound(liquidity, 1, type(uint128).max));
+        sqrtPX96 = uint160(
+            bound(
+                sqrtPX96,
+                TickMath.MIN_SQRT_RATIO,
+                TickMath.MAX_SQRT_RATIO - 1
+            )
+        );
+        amount = bound(
             amount,
-            add
-        ) returns (uint160 expected) {
+            0,
+            FullMath.mulDiv96(type(uint160).max, liquidity)
+        );
+        try
+            ogWrapper.getNextSqrtPriceFromAmount1RoundingDown(
+                sqrtPX96,
+                liquidity,
+                amount,
+                add
+            )
+        returns (uint160 expected) {
             assertEq(
                 wrapper.getNextSqrtPriceFromAmount1RoundingDown(
                     sqrtPX96,
@@ -188,12 +213,14 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amountIn,
         bool zeroForOne
     ) external {
-        try ogWrapper.getNextSqrtPriceFromInput(
-            sqrtPX96,
-            liquidity,
-            amountIn,
-            zeroForOne
-        ) returns (uint160 expected) {
+        try
+            ogWrapper.getNextSqrtPriceFromInput(
+                sqrtPX96,
+                liquidity,
+                amountIn,
+                zeroForOne
+            )
+        returns (uint160 expected) {
             assertEq(
                 wrapper.getNextSqrtPriceFromInput(
                     sqrtPX96,
@@ -212,12 +239,14 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amountOut,
         bool zeroForOne
     ) external {
-        try ogWrapper.getNextSqrtPriceFromOutput(
-            sqrtPX96,
-            liquidity,
-            amountOut,
-            zeroForOne
-        ) returns (uint160 expected) {
+        try
+            ogWrapper.getNextSqrtPriceFromOutput(
+                sqrtPX96,
+                liquidity,
+                amountOut,
+                zeroForOne
+            )
+        returns (uint160 expected) {
             assertEq(
                 wrapper.getNextSqrtPriceFromOutput(
                     sqrtPX96,
@@ -236,12 +265,14 @@ contract SqrtPriceMathTest is BaseTest {
         uint128 liquidity,
         bool roundUp
     ) external {
-        try ogWrapper.getAmount0Delta(
-            sqrtRatioAX96,
-            sqrtRatioBX96,
-            liquidity,
-            roundUp
-        ) returns (uint256 expected) {
+        try
+            ogWrapper.getAmount0Delta(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity,
+                roundUp
+            )
+        returns (uint256 expected) {
             assertEq(
                 wrapper.getAmount0Delta(
                     sqrtRatioAX96,
@@ -260,12 +291,14 @@ contract SqrtPriceMathTest is BaseTest {
         uint128 liquidity,
         bool roundUp
     ) external {
-        try ogWrapper.getAmount1Delta(
-            sqrtRatioAX96,
-            sqrtRatioBX96,
-            liquidity,
-            roundUp
-        ) returns (uint256 expected) {
+        try
+            ogWrapper.getAmount1Delta(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity,
+                roundUp
+            )
+        returns (uint256 expected) {
             assertEq(
                 wrapper.getAmount1Delta(
                     sqrtRatioAX96,
@@ -283,11 +316,9 @@ contract SqrtPriceMathTest is BaseTest {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external {
-        try ogWrapper.getAmount0Delta(
-            sqrtRatioAX96,
-            sqrtRatioBX96,
-            liquidity
-        ) returns (int256 expected) {
+        try
+            ogWrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity)
+        returns (int256 expected) {
             assertEq(
                 wrapper.getAmount0Delta(
                     sqrtRatioAX96,
@@ -304,11 +335,9 @@ contract SqrtPriceMathTest is BaseTest {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external {
-        try ogWrapper.getAmount1Delta(
-            sqrtRatioAX96,
-            sqrtRatioBX96,
-            liquidity
-        ) returns (int256 expected) {
+        try
+            ogWrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity)
+        returns (int256 expected) {
             assertEq(
                 wrapper.getAmount1Delta(
                     sqrtRatioAX96,
