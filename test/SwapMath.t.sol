@@ -55,4 +55,129 @@ contract SwapMathTest is BaseTest {
         wrapper = new SwapMathWrapper();
         makeOriginalLibrary(address(ogWrapper), "SwapMathTest");
     }
+
+    function testFuzz_ComputeSwapStep(
+        uint160 sqrtRatioCurrentX96,
+        uint160 sqrtRatioTargetX96,
+        uint128 liquidity,
+        int256 amountRemaining,
+        uint24 feePips
+    ) external {
+        sqrtRatioCurrentX96 = boundUint160(sqrtRatioCurrentX96);
+        sqrtRatioTargetX96 = boundUint160(sqrtRatioTargetX96);
+        feePips = uint24(bound(feePips, 0, SwapMath.MAX_FEE_PIPS));
+        (
+            uint160 sqrtRatioNextX96,
+            uint256 amountIn,
+            uint256 amountOut,
+            uint256 feeAmount
+        ) = wrapper.computeSwapStep(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        (
+            uint160 ogSqrtRatioNextX96,
+            uint256 ogAmountIn,
+            uint256 ogAmountOut,
+            uint256 ogFeeAmount
+        ) = ogWrapper.computeSwapStep(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96);
+        assertEq(amountIn, ogAmountIn);
+        assertEq(amountOut, ogAmountOut);
+        assertEq(feeAmount, ogFeeAmount);
+    }
+
+    function testGas_ComputeSwapStep() external view {
+        for (uint256 i; i < 100; ++i) {
+            wrapper.computeSwapStep(
+                pseudoRandomUint160(i),
+                pseudoRandomUint160(i ** 2),
+                pseudoRandomUint128(i ** 3),
+                pseudoRandomInt128(i ** 4),
+                uint24(i)
+            );
+        }
+    }
+
+    function testGas_ComputeSwapStep_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            ogWrapper.computeSwapStep(
+                pseudoRandomUint160(i),
+                pseudoRandomUint160(i ** 2),
+                pseudoRandomUint128(i ** 3),
+                pseudoRandomInt128(i ** 4),
+                uint24(i)
+            );
+        }
+    }
+
+    function testFuzz_ComputeSwapStepExactIn(
+        uint160 sqrtRatioCurrentX96,
+        uint160 sqrtRatioTargetX96,
+        uint128 liquidity,
+        uint256 amountRemaining,
+        uint24 feePips
+    ) external {
+        sqrtRatioCurrentX96 = boundUint160(sqrtRatioCurrentX96);
+        sqrtRatioTargetX96 = boundUint160(sqrtRatioTargetX96);
+        feePips = uint24(bound(feePips, 0, SwapMath.MAX_FEE_PIPS));
+        (
+            uint160 sqrtRatioNextX96,
+            uint256 amountIn,
+            uint256 amountOut
+        ) = wrapper.computeSwapStepExactIn(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        (
+            uint160 ogSqrtRatioNextX96,
+            uint256 ogAmountIn,
+            uint256 ogAmountOut
+        ) = ogWrapper.computeSwapStepExactIn(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96);
+        assertEq(amountIn, ogAmountIn);
+        assertEq(amountOut, ogAmountOut);
+    }
+
+    function testGas_ComputeSwapStepExactIn() external view {
+        for (uint256 i; i < 100; ++i) {
+            wrapper.computeSwapStepExactIn(
+                pseudoRandomUint160(i),
+                pseudoRandomUint160(i ** 2),
+                pseudoRandomUint128(i ** 3),
+                pseudoRandom(i ** 4),
+                i
+            );
+        }
+    }
+
+    function testGas_ComputeSwapStepExactIn_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            ogWrapper.computeSwapStepExactIn(
+                pseudoRandomUint160(i),
+                pseudoRandomUint160(i ** 2),
+                pseudoRandomUint128(i ** 3),
+                pseudoRandom(i ** 4),
+                i
+            );
+        }
+    }
 }
