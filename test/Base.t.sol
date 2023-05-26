@@ -3,7 +3,8 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {INonfungiblePositionManager} from "../src/interfaces/INonfungiblePositionManager.sol";
+import {INonfungiblePositionManager} from "src/interfaces/INonfungiblePositionManager.sol";
+import {TickMath} from "src/TickMath.sol";
 
 /// @dev Base test class for all tests.
 abstract contract BaseTest is Test {
@@ -29,5 +30,26 @@ abstract contract BaseTest is Test {
             ".deployedBytecode"
         );
         vm.etch(lib, deployedBytecode);
+    }
+
+    function boundUint160(uint160 x) internal view returns (uint160) {
+        return
+            uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
+    }
+
+    function pseudoRandom(uint256 seed) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encode(seed)));
+    }
+
+    function pseudoRandomUint160(uint256 seed) internal pure returns (uint160) {
+        return uint160(pseudoRandom(seed));
+    }
+
+    function pseudoRandomUint128(uint256 seed) internal pure returns (uint128) {
+        return uint128(pseudoRandom(seed));
+    }
+
+    function pseudoRandomInt128(uint256 seed) internal pure returns (int128) {
+        return int128(int256(pseudoRandom(seed)));
     }
 }

@@ -7,7 +7,7 @@ on:
   pull_request:
 
 env:
-  FOUNDRY_PROFILE: default
+  FOUNDRY_PROFILE: ci
   MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
 
 jobs:

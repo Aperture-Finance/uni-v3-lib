@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {ISqrtPriceMath} from "src/test/interfaces/ISqrtPriceMath.sol";
-import {TickMath} from "src/TickMath.sol";
 import "src/SqrtPriceMath.sol";
 import "./Base.t.sol";
 
@@ -141,13 +140,7 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amount,
         bool add
     ) external {
-        sqrtPX96 = uint160(
-            bound(
-                sqrtPX96,
-                TickMath.MIN_SQRT_RATIO,
-                TickMath.MAX_SQRT_RATIO - 1
-            )
-        );
+        sqrtPX96 = boundUint160(sqrtPX96);
         try
             ogWrapper.getNextSqrtPriceFromAmount0RoundingUp(
                 sqrtPX96,
@@ -175,13 +168,7 @@ contract SqrtPriceMathTest is BaseTest {
         bool add
     ) external {
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
-        sqrtPX96 = uint160(
-            bound(
-                sqrtPX96,
-                TickMath.MIN_SQRT_RATIO,
-                TickMath.MAX_SQRT_RATIO - 1
-            )
-        );
+        sqrtPX96 = boundUint160(sqrtPX96);
         amount = bound(
             amount,
             0,
@@ -233,6 +220,32 @@ contract SqrtPriceMathTest is BaseTest {
         } catch {}
     }
 
+    function testGas_GetNextSqrtPriceFromInput() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                wrapper.getNextSqrtPriceFromInput(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint128(i ** 2),
+                    pseudoRandom(i ** 3),
+                    i % 2 == 0
+                )
+            {} catch {}
+        }
+    }
+
+    function testGas_GetNextSqrtPriceFromInput_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                ogWrapper.getNextSqrtPriceFromInput(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint128(i ** 2),
+                    pseudoRandom(i ** 3),
+                    i % 2 == 0
+                )
+            {} catch {}
+        }
+    }
+
     function testFuzz_GetNextSqrtPriceFromOutput(
         uint160 sqrtPX96,
         uint128 liquidity,
@@ -257,6 +270,32 @@ contract SqrtPriceMathTest is BaseTest {
                 expected
             );
         } catch {}
+    }
+
+    function testGas_GetNextSqrtPriceFromOutput() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                wrapper.getNextSqrtPriceFromOutput(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint128(i ** 2),
+                    pseudoRandom(i ** 3),
+                    i % 2 == 0
+                )
+            {} catch {}
+        }
+    }
+
+    function testGas_GetNextSqrtPriceFromOutput_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                ogWrapper.getNextSqrtPriceFromOutput(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint128(i ** 2),
+                    pseudoRandom(i ** 3),
+                    i % 2 == 0
+                )
+            {} catch {}
+        }
     }
 
     function testFuzz_GetAmount0Delta(
@@ -330,6 +369,30 @@ contract SqrtPriceMathTest is BaseTest {
         } catch {}
     }
 
+    function testGas_GetAmount0Delta() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                wrapper.getAmount0Delta(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint160(i ** 2),
+                    pseudoRandomInt128(i ** 3)
+                )
+            {} catch {}
+        }
+    }
+
+    function testGas_GetAmount0Delta_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                ogWrapper.getAmount0Delta(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint160(i ** 2),
+                    pseudoRandomInt128(i ** 3)
+                )
+            {} catch {}
+        }
+    }
+
     function testFuzz_GetAmount1Delta(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,
@@ -347,5 +410,29 @@ contract SqrtPriceMathTest is BaseTest {
                 expected
             );
         } catch {}
+    }
+
+    function testGas_GetAmount1Delta() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                wrapper.getAmount1Delta(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint160(i ** 2),
+                    pseudoRandomInt128(i ** 3)
+                )
+            {} catch {}
+        }
+    }
+
+    function testGas_GetAmount1Delta_Og() external view {
+        for (uint256 i; i < 100; ++i) {
+            try
+                ogWrapper.getAmount1Delta(
+                    pseudoRandomUint160(i),
+                    pseudoRandomUint160(i ** 2),
+                    pseudoRandomInt128(i ** 3)
+                )
+            {} catch {}
+        }
     }
 }
