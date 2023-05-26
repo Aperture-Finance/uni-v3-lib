@@ -110,11 +110,12 @@ library SqrtPriceMath {
                         liquidity
                     )
             );
-
-            if (sqrtPX96 <= quotient) revert();
-            assembly {
+            assembly ("memory-safe") {
                 // always fits 160 bits
                 nextSqrtPrice := sub(sqrtPX96, quotient)
+                if slt(nextSqrtPrice, 0) {
+                    revert(0, 0)
+                }
             }
         }
     }
@@ -132,8 +133,11 @@ library SqrtPriceMath {
         uint256 amountIn,
         bool zeroForOne
     ) internal pure returns (uint160 sqrtQX96) {
-        if (sqrtPX96 == 0 || liquidity == 0) revert();
-
+        assembly ("memory-safe") {
+            if or(iszero(sqrtPX96), iszero(liquidity)) {
+                revert(0, 0)
+            }
+        }
         // round to make sure that we don't pass the target price
         return
             zeroForOne
@@ -164,8 +168,11 @@ library SqrtPriceMath {
         uint256 amountOut,
         bool zeroForOne
     ) internal pure returns (uint160 sqrtQX96) {
-        if (sqrtPX96 == 0 || liquidity == 0) revert();
-
+        assembly ("memory-safe") {
+            if or(iszero(sqrtPX96), iszero(liquidity)) {
+                revert(0, 0)
+            }
+        }
         // round to make sure that we pass the target price
         return
             zeroForOne
@@ -201,9 +208,13 @@ library SqrtPriceMath {
             sqrtRatioX96Lower,
             sqrtRatioX96Upper
         );
+        assembly ("memory-safe") {
+            if iszero(sqrtRatioX96Lower) {
+                revert(0, 0)
+            }
+        }
         uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
         uint256 numerator2 = sqrtRatioX96Upper.sub(sqrtRatioX96Lower);
-        if (sqrtRatioX96Lower == 0) revert();
         /**
          * Equivalent to:
          *   roundUp
@@ -301,7 +312,7 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // In case the higher bits are not clean.
+            // In case the upper bits are not clean.
             liquidity := signextend(15, liquidity)
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))
@@ -342,7 +353,7 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // In case the higher bits are not clean.
+            // In case the upper bits are not clean.
             liquidity := signextend(15, liquidity)
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))

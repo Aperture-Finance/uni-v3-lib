@@ -104,15 +104,6 @@ contract LiquidityAmountsTest is BaseTest {
         makeOriginalLibrary(address(ogWrapper), "LiquidityAmountsTest");
     }
 
-    function boundUint160(uint160 x) internal view returns (uint160) {
-        return
-            uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
-    }
-
-    function pseudoRandomUint160(uint256 seed) internal pure returns (uint160) {
-        return uint160(uint256(keccak256(abi.encode(seed))));
-    }
-
     function testFuzz_GetLiquidityForAmount0(
         uint160 sqrtRatioAX96,
         uint160 sqrtRatioBX96,
