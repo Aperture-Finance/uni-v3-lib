@@ -23,7 +23,18 @@ interface ISwapMath {
         uint160 sqrtRatioTargetX96,
         uint128 liquidity,
         uint256 amountRemaining,
-        uint256 feePips
+        uint24 feePips
+    )
+        external
+        pure
+        returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut);
+
+    function computeSwapStepExactOut(
+        uint160 sqrtRatioCurrentX96,
+        uint160 sqrtRatioTargetX96,
+        uint128 liquidity,
+        uint256 amountRemaining,
+        uint24 feePips
     )
         external
         pure

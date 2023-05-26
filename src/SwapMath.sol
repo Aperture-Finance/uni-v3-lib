@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.8.4;
 
+import "forge-std/Test.sol";
 import "./SqrtPriceMath.sol";
 
 /// @title Computes the result of a swap within ticks
@@ -190,7 +191,6 @@ library SwapMath {
     {
         bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
         uint256 feeComplement = UnsafeMath.sub(MAX_FEE_PIPS, feePips);
-
         uint256 amountRemainingLessFee = FullMath.mulDiv(
             amountRemaining,
             feeComplement,
@@ -212,6 +212,12 @@ library SwapMath {
         if (amountRemainingLessFee >= amountIn) {
             // `amountIn` is capped by the target price
             sqrtRatioNextX96 = sqrtRatioTargetX96;
+            // Just add the fee amount
+            amountIn = FullMath.mulDivRoundingUp(
+                amountIn,
+                MAX_FEE_PIPS,
+                feeComplement
+            );
         } else {
             // Exhaust the remaining amount
             sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromInput(
@@ -220,13 +226,8 @@ library SwapMath {
                 amountRemainingLessFee,
                 zeroForOne
             );
+            amountIn = amountRemaining;
         }
-
-        // Just add the fee amount if `amountIn` is capped by the target price.
-        // Otherwise all of `amountRemaining` is consumed.
-        amountIn = sqrtRatioTargetX96 == sqrtRatioNextX96
-            ? FullMath.mulDivRoundingUp(amountIn, MAX_FEE_PIPS, feeComplement)
-            : amountRemaining;
         amountOut = zeroForOne
             ? SqrtPriceMath.getAmount1Delta(
                 sqrtRatioNextX96,
@@ -240,5 +241,86 @@ library SwapMath {
                 liquidity,
                 false
             );
+    }
+
+    /// @notice Computes the result of swapping some amount out, given the parameters of the swap
+    /// @param sqrtRatioCurrentX96 The current sqrt price of the pool
+    /// @param sqrtRatioTargetX96 The price that cannot be exceeded, from which the direction of the swap is inferred
+    /// @param liquidity The usable liquidity
+    /// @param amountRemaining How much output amount is remaining to be swapped out
+    /// @param feePips The fee taken from the input amount, expressed in hundredths of a bip
+    /// @return sqrtRatioNextX96 The price after swapping the amount in/out, not to exceed the price target
+    /// @return amountIn The amount to be swapped in, of either token0 or token1, based on the direction of the swap
+    /// @return amountOut The amount to be received, of either token0 or token1, based on the direction of the swap
+    function computeSwapStepExactOut(
+        uint160 sqrtRatioCurrentX96,
+        uint160 sqrtRatioTargetX96,
+        uint128 liquidity,
+        uint256 amountRemaining,
+        uint256 feePips
+    )
+        internal
+        pure
+        returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
+    {
+        bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
+        amountOut = zeroForOne
+            ? SqrtPriceMath.getAmount1Delta(
+                sqrtRatioTargetX96,
+                sqrtRatioCurrentX96,
+                liquidity,
+                false
+            )
+            : SqrtPriceMath.getAmount0Delta(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                false
+            );
+        if (amountRemaining >= amountOut) {
+            // `amountOut` is capped by the target price
+            sqrtRatioNextX96 = sqrtRatioTargetX96;
+        } else {
+            // Exhaust the remaining amount
+            sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromOutput(
+                sqrtRatioCurrentX96,
+                liquidity,
+                amountRemaining,
+                zeroForOne
+            );
+            amountOut = amountRemaining;
+        }
+        amountIn = zeroForOne
+                ? SqrtPriceMath.getAmount0Delta(
+                    sqrtRatioNextX96,
+                    sqrtRatioCurrentX96,
+                    liquidity,
+                    true
+                )
+                : SqrtPriceMath.getAmount1Delta(
+                    sqrtRatioCurrentX96,
+                    sqrtRatioNextX96,
+                    liquidity,
+                    true
+                );
+        console2.log("amountIn", amountIn);
+        console2.log("feeAmount", FullMath.mulDivRoundingUp(amountIn, feePips, UnsafeMath.sub(MAX_FEE_PIPS, feePips)));
+        amountIn = FullMath.mulDivRoundingUp(
+            zeroForOne
+                ? SqrtPriceMath.getAmount0Delta(
+                    sqrtRatioNextX96,
+                    sqrtRatioCurrentX96,
+                    liquidity,
+                    true
+                )
+                : SqrtPriceMath.getAmount1Delta(
+                    sqrtRatioCurrentX96,
+                    sqrtRatioNextX96,
+                    liquidity,
+                    true
+                ),
+            MAX_FEE_PIPS,
+            UnsafeMath.sub(MAX_FEE_PIPS, feePips)
+        );
     }
 }

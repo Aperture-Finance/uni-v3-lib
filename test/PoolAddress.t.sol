@@ -45,7 +45,7 @@ contract PoolAddressValidator {
 /// @dev Test contract for CallbackValidation and PoolAddress.
 contract PoolAddressTest is BaseTest {
     // Wrapper that exposes the original PoolAddress library.
-    IPoolAddress internal wrapper = IPoolAddress(makeAddr("wrapper"));
+    IPoolAddress internal wrapper = IPoolAddress(makeAddr("original"));
     PoolAddressValidator internal validator;
 
     function setUp() public override {

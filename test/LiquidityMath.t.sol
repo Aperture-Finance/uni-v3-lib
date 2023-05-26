@@ -14,7 +14,7 @@ contract LiquidityMathWrapper is ILiquidityMath {
 /// @dev Tests for FullMath
 contract LiquidityMathTest is BaseTest {
     // Wrapper that exposes the original LiquidityMath library.
-    ILiquidityMath internal ogWrapper = ILiquidityMath(makeAddr("wrapper"));
+    ILiquidityMath internal ogWrapper = ILiquidityMath(makeAddr("original"));
     LiquidityMathWrapper internal wrapper;
 
     function setUp() public override {

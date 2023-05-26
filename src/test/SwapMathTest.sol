@@ -28,7 +28,7 @@ contract SwapMathTest is ISwapMath {
         uint160 sqrtRatioTargetX96,
         uint128 liquidity,
         uint256 amountRemaining,
-        uint256 feePips
+        uint24 feePips
     )
         external
         pure
@@ -40,7 +40,28 @@ contract SwapMathTest is ISwapMath {
             sqrtRatioTargetX96,
             liquidity,
             int256(amountRemaining),
-            uint24(feePips)
+            feePips
+        );
+    }
+
+    function computeSwapStepExactOut(
+        uint160 sqrtRatioCurrentX96,
+        uint160 sqrtRatioTargetX96,
+        uint128 liquidity,
+        uint256 amountRemaining,
+        uint24 feePips
+    )
+        external
+        pure
+        override
+        returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
+    {
+        (sqrtRatioNextX96, amountIn, amountOut, ) = SwapMath.computeSwapStep(
+            sqrtRatioCurrentX96,
+            sqrtRatioTargetX96,
+            liquidity,
+            -int256(amountRemaining),
+            feePips
         );
     }
 }
