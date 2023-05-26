@@ -18,7 +18,7 @@ contract BitMathWrapper is IBitMath {
 /// @title Test contract for BitMath
 contract BitMathTest is BaseTest {
     // Wrapper that exposes the original BitMath library.
-    IBitMath internal ogWrapper = IBitMath(makeAddr("wrapper"));
+    IBitMath internal ogWrapper = IBitMath(makeAddr("original"));
     BitMathWrapper internal wrapper;
 
     function setUp() public override {

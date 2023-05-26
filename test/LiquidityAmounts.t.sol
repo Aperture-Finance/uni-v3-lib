@@ -96,7 +96,7 @@ contract LiquidityAmountsWrapper is ILiquidityAmounts {
 contract LiquidityAmountsTest is BaseTest {
     // Wrapper that exposes the original LiquidityMath library.
     ILiquidityAmounts internal ogWrapper =
-        ILiquidityAmounts(makeAddr("wrapper"));
+        ILiquidityAmounts(makeAddr("original"));
     LiquidityAmountsWrapper internal wrapper;
 
     function setUp() public override {

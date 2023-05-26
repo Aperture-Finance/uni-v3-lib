@@ -10,7 +10,7 @@ import "./Base.t.sol";
 /// @dev Tests for FullMath
 contract FullMathTest is BaseTest {
     // Wrapper that exposes the original FullMath library.
-    IFullMath internal wrapper = IFullMath(makeAddr("wrapper"));
+    IFullMath internal wrapper = IFullMath(makeAddr("original"));
 
     function setUp() public override {
         makeOriginalLibrary(address(wrapper), "FullMathTest");
