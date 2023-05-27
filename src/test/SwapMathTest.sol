@@ -35,13 +35,16 @@ contract SwapMathTest is ISwapMath {
         override
         returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
     {
-        (sqrtRatioNextX96, amountIn, amountOut, ) = SwapMath.computeSwapStep(
-            sqrtRatioCurrentX96,
-            sqrtRatioTargetX96,
-            liquidity,
-            int256(amountRemaining),
-            feePips
-        );
+        uint256 feeAmount;
+        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath
+            .computeSwapStep(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                int256(amountRemaining),
+                feePips
+            );
+        amountIn += feeAmount;
     }
 
     function computeSwapStepExactOut(
@@ -56,12 +59,15 @@ contract SwapMathTest is ISwapMath {
         override
         returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
     {
-        (sqrtRatioNextX96, amountIn, amountOut, ) = SwapMath.computeSwapStep(
-            sqrtRatioCurrentX96,
-            sqrtRatioTargetX96,
-            liquidity,
-            -int256(amountRemaining),
-            feePips
-        );
+        uint256 feeAmount;
+        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath
+            .computeSwapStep(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                -int256(amountRemaining),
+                feePips
+            );
+        amountIn += feeAmount;
     }
 }

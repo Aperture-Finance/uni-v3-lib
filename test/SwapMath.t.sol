@@ -147,7 +147,7 @@ contract SwapMathTest is BaseTest {
         sqrtRatioCurrentX96 = boundUint160(sqrtRatioCurrentX96);
         sqrtRatioTargetX96 = boundUint160(sqrtRatioTargetX96);
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
-        amountRemaining = bound(amountRemaining, 0, 1 << 255 - 1);
+        amountRemaining = bound(amountRemaining, 0, (1 << 255) - 1);
         feePips = uint24(bound(feePips, 0, SwapMath.MAX_FEE_PIPS));
         try
             ogWrapper.computeSwapStepExactIn(
@@ -213,7 +213,7 @@ contract SwapMathTest is BaseTest {
         sqrtRatioCurrentX96 = boundUint160(sqrtRatioCurrentX96);
         sqrtRatioTargetX96 = boundUint160(sqrtRatioTargetX96);
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
-        amountRemaining = bound(amountRemaining, 0, 1 << 255 - 1);
+        amountRemaining = bound(amountRemaining, 1, (1 << 255) - 1);
         feePips = uint24(bound(feePips, 0, SwapMath.MAX_FEE_PIPS));
         try
             ogWrapper.computeSwapStepExactOut(
