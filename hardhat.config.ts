@@ -36,6 +36,7 @@ const config: HardhatUserConfig = {
     compilers: [DEFAULT_COMPILER_SETTINGS, OLD_COMPILER_SETTINGS],
     overrides: {
       "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol": OLD_COMPILER_SETTINGS,
+      "@uniswap/v3-core/contracts/libraries/TickBitmap.sol": OLD_COMPILER_SETTINGS,
     },
   } as SolidityUserConfig,
 };

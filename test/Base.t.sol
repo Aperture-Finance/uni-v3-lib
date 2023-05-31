@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "forge-std/Test.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {INonfungiblePositionManager} from "src/interfaces/INonfungiblePositionManager.sol";
 import {TickMath} from "src/TickMath.sol";
 
@@ -12,8 +13,22 @@ abstract contract BaseTest is Test {
         IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     INonfungiblePositionManager internal constant npm =
         INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
+    address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+    address internal constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address internal pool;
+    int24 internal tickSpacing;
 
     function setUp() public virtual {}
+
+    function createFork() internal {
+        vm.createSelectFork("mainnet", 17000000);
+        pool = factory.getPool(WETH, USDC, 3000);
+        tickSpacing = IUniswapV3Pool(pool).tickSpacing();
+    }
+
+    function currentTick() internal view returns (int24 tick) {
+        (, tick, , , , , ) = IUniswapV3Pool(pool).slot0();
+    }
 
     /// @dev Deploy a test wrapper with `name` to `lib` using `vm.etch`.
     function makeOriginalLibrary(address lib, string memory name) internal {
