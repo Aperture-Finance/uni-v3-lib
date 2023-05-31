@@ -158,7 +158,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getNextSqrtPriceFromAmount0RoundingUp(
+                sqrtPX96,
+                liquidity,
+                amount,
+                add
+            );
+        }
     }
 
     function testFuzz_GetNextSqrtPriceFromAmount1RoundingDown(
@@ -191,7 +199,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getNextSqrtPriceFromAmount1RoundingDown(
+                sqrtPX96,
+                liquidity,
+                amount,
+                add
+            );
+        }
     }
 
     function testFuzz_GetNextSqrtPriceFromInput(
@@ -217,7 +233,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getNextSqrtPriceFromInput(
+                sqrtPX96,
+                liquidity,
+                amountIn,
+                zeroForOne
+            );
+        }
     }
 
     function testGas_GetNextSqrtPriceFromInput() external view {
@@ -269,7 +293,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getNextSqrtPriceFromOutput(
+                sqrtPX96,
+                liquidity,
+                amountOut,
+                zeroForOne
+            );
+        }
     }
 
     function testGas_GetNextSqrtPriceFromOutput() external view {
@@ -321,7 +353,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount0Delta(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity,
+                roundUp
+            );
+        }
     }
 
     function testFuzz_GetAmount1Delta(
@@ -347,7 +387,15 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount1Delta(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity,
+                roundUp
+            );
+        }
     }
 
     function testFuzz_GetAmount0Delta(
@@ -366,7 +414,10 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+        }
     }
 
     function testGas_GetAmount0Delta() external view {
@@ -409,7 +460,10 @@ contract SqrtPriceMathTest is BaseTest {
                 ),
                 expected
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+        }
     }
 
     function testGas_GetAmount1Delta() external view {

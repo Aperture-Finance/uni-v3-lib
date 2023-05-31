@@ -111,11 +111,11 @@ library SqrtPriceMath {
                     )
             );
             assembly ("memory-safe") {
-                // always fits 160 bits
-                nextSqrtPrice := sub(sqrtPX96, quotient)
-                if slt(nextSqrtPrice, 0) {
+                if iszero(gt(sqrtPX96, quotient)) {
                     revert(0, 0)
                 }
+                // always fits 160 bits
+                nextSqrtPrice := sub(sqrtPX96, quotient)
             }
         }
     }
