@@ -110,7 +110,16 @@ contract SwapMathTest is BaseTest {
             assertEq(amountIn, ogAmountIn);
             assertEq(amountOut, ogAmountOut);
             assertEq(feeAmount, ogFeeAmount);
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.computeSwapStep(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        }
     }
 
     function testGas_ComputeSwapStep() external view {
@@ -176,7 +185,16 @@ contract SwapMathTest is BaseTest {
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96, "sqrtRatioNextX96");
             assertEq(amountIn, ogAmountIn, "amountIn");
             assertEq(amountOut, ogAmountOut, "amountOut");
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.computeSwapStepExactIn(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        }
     }
 
     function testGas_ComputeSwapStepExactIn() external view {
@@ -242,7 +260,16 @@ contract SwapMathTest is BaseTest {
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96, "sqrtRatioNextX96");
             assertEq(amountIn, ogAmountIn, "amountIn");
             assertEq(amountOut, ogAmountOut, "amountOut");
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.computeSwapStepExactOut(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
+        }
     }
 
     function testGas_ComputeSwapStepExactOut() external view {

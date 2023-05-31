@@ -320,6 +320,8 @@ library SqrtPriceMath {
             mask := sub(sign, 1)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
+        // amount0Abs = liquidity / sqrt(lower) - liquidity / sqrt(upper) < 2**224
+        // always fits in 224 bits, no need for toInt256()
         uint256 amount0Abs = getAmount0Delta(
             sqrtRatioAX96,
             sqrtRatioBX96,
@@ -361,6 +363,8 @@ library SqrtPriceMath {
             mask := sub(sign, 1)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
+        // amount1Abs = liquidity * (sqrt(upper) - sqrt(lower)) < 2**192
+        // always fits in 192 bits, no need for toInt256()
         uint256 amount1Abs = getAmount1Delta(
             sqrtRatioAX96,
             sqrtRatioBX96,

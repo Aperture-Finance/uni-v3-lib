@@ -112,7 +112,7 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getLiquidityForAmount0(
+            ogWrapper.getLiquidityForAmount0(
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 amount0
@@ -120,13 +120,20 @@ contract LiquidityAmountsTest is BaseTest {
         returns (uint128 liquidity) {
             assertEq(
                 liquidity,
-                ogWrapper.getLiquidityForAmount0(
+                wrapper.getLiquidityForAmount0(
                     sqrtRatioAX96,
                     sqrtRatioBX96,
                     amount0
                 )
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getLiquidityForAmount0(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                amount0
+            );
+        }
     }
 
     function testFuzz_GetLiquidityForAmount1(
@@ -137,7 +144,7 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getLiquidityForAmount1(
+            ogWrapper.getLiquidityForAmount1(
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 amount1
@@ -145,13 +152,20 @@ contract LiquidityAmountsTest is BaseTest {
         returns (uint128 liquidity) {
             assertEq(
                 liquidity,
-                ogWrapper.getLiquidityForAmount1(
+                wrapper.getLiquidityForAmount1(
                     sqrtRatioAX96,
                     sqrtRatioBX96,
                     amount1
                 )
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getLiquidityForAmount1(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                amount1
+            );
+        }
     }
 
     function testFuzz_GetLiquidityForAmounts(
@@ -165,7 +179,7 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getLiquidityForAmounts(
+            ogWrapper.getLiquidityForAmounts(
                 sqrtRatioX96,
                 sqrtRatioAX96,
                 sqrtRatioBX96,
@@ -175,7 +189,7 @@ contract LiquidityAmountsTest is BaseTest {
         returns (uint128 liquidity) {
             assertEq(
                 liquidity,
-                ogWrapper.getLiquidityForAmounts(
+                wrapper.getLiquidityForAmounts(
                     sqrtRatioX96,
                     sqrtRatioAX96,
                     sqrtRatioBX96,
@@ -183,7 +197,16 @@ contract LiquidityAmountsTest is BaseTest {
                     amount1
                 )
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getLiquidityForAmounts(
+                sqrtRatioX96,
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                amount0,
+                amount1
+            );
+        }
     }
 
     function testGas_GetLiquidityForAmounts() public view {
@@ -226,7 +249,7 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getAmount0ForLiquidity(
+            ogWrapper.getAmount0ForLiquidity(
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 liquidity
@@ -234,13 +257,20 @@ contract LiquidityAmountsTest is BaseTest {
         returns (uint256 amount0) {
             assertEq(
                 amount0,
-                ogWrapper.getAmount0ForLiquidity(
+                wrapper.getAmount0ForLiquidity(
                     sqrtRatioAX96,
                     sqrtRatioBX96,
                     liquidity
                 )
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount0ForLiquidity(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity
+            );
+        }
     }
 
     function testFuzz_GetAmount1ForLiquidity(
@@ -251,7 +281,7 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getAmount1ForLiquidity(
+            ogWrapper.getAmount1ForLiquidity(
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 liquidity
@@ -259,13 +289,20 @@ contract LiquidityAmountsTest is BaseTest {
         returns (uint256 amount1) {
             assertEq(
                 amount1,
-                ogWrapper.getAmount1ForLiquidity(
+                wrapper.getAmount1ForLiquidity(
                     sqrtRatioAX96,
                     sqrtRatioBX96,
                     liquidity
                 )
             );
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmount1ForLiquidity(
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity
+            );
+        }
     }
 
     function testFuzz_GetAmountsForLiquidity(
@@ -278,14 +315,14 @@ contract LiquidityAmountsTest is BaseTest {
         sqrtRatioAX96 = boundUint160(sqrtRatioAX96);
         sqrtRatioBX96 = boundUint160(sqrtRatioBX96);
         try
-            wrapper.getAmountsForLiquidity(
+            ogWrapper.getAmountsForLiquidity(
                 sqrtRatioX96,
                 sqrtRatioAX96,
                 sqrtRatioBX96,
                 liquidity
             )
         returns (uint256 amount0, uint256 amount1) {
-            (uint256 _amount0, uint256 _amount1) = ogWrapper
+            (uint256 _amount0, uint256 _amount1) = wrapper
                 .getAmountsForLiquidity(
                     sqrtRatioX96,
                     sqrtRatioAX96,
@@ -294,7 +331,15 @@ contract LiquidityAmountsTest is BaseTest {
                 );
             assertEq(amount0, _amount0);
             assertEq(amount1, _amount1);
-        } catch {}
+        } catch (bytes memory) {
+            vm.expectRevert();
+            wrapper.getAmountsForLiquidity(
+                sqrtRatioX96,
+                sqrtRatioAX96,
+                sqrtRatioBX96,
+                liquidity
+            );
+        }
     }
 
     function testGas_GetAmountsForLiquidity() public view {
