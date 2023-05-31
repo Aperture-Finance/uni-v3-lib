@@ -13,13 +13,13 @@
     "prettier:fix": "prettier -w {src,test}/**/*.sol"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/contracts": "^4.9.0",
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.3"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-foundry": "^1.0.1",
-    "hardhat": "^2.14.0",
+    "hardhat": "^2.14.1",
     "prettier": "^2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
     "ts-node": "^10.9.1",
