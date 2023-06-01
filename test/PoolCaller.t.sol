@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -33,17 +33,15 @@ contract PoolCallerWrapper {
 
 /// @dev Test the PoolCaller library.
 contract PoolCallerTest is BaseTest {
+    using SafeTransferLib for address;
+
     PoolCallerWrapper internal poolCaller;
     V3PoolCallee internal poolCallee;
-    address internal token0;
-    address internal token1;
 
     function setUp() public override {
         createFork();
         poolCaller = new PoolCallerWrapper(pool);
         poolCallee = V3PoolCallee.wrap(pool);
-        token0 = IUniswapV3Pool(pool).token0();
-        token1 = IUniswapV3Pool(pool).token1();
     }
 
     /// @dev Prepare amount to swap
@@ -75,8 +73,8 @@ contract PoolCallerTest is BaseTest {
         int256 amount1Delta,
         bytes calldata
     ) external {
-        if (amount0Delta > 0) IERC20(token0).transfer(pool, uint256(amount0Delta));
-        if (amount1Delta > 0) IERC20(token1).transfer(pool, uint256(amount1Delta));
+        if (amount0Delta > 0) token0.safeTransfer(pool, uint256(amount0Delta));
+        if (amount1Delta > 0) token1.safeTransfer(pool, uint256(amount1Delta));
     }
 
     /// @dev Ensure that the swap is successful
