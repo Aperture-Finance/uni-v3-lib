@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {LiquidityAmounts} from "src/LiquidityAmounts.sol";
 import "src/NPMCaller.sol";
 import "./Base.t.sol";
 
@@ -9,10 +10,41 @@ import "./Base.t.sol";
 contract NPMCallerWrapper {
     using SafeTransferLib for address;
 
-    INonfungiblePositionManager immutable npm;
+    INonfungiblePositionManager internal immutable npm;
 
     constructor(INonfungiblePositionManager _npm) {
         npm = _npm;
+    }
+
+    function balanceOf(address owner) external view returns (uint256) {
+        return NPMCaller.balanceOf(npm, owner);
+    }
+
+    function totalSupply() external view returns (uint256) {
+        return NPMCaller.totalSupply(npm);
+    }
+
+    function ownerOf(uint256 tokenId) external view returns (address) {
+        return NPMCaller.ownerOf(npm, tokenId);
+    }
+
+    function getApproved(uint256 tokenId) external view returns (address) {
+        return NPMCaller.getApproved(npm, tokenId);
+    }
+
+    function approve(address spender, uint256 tokenId) external {
+        NPMCaller.approve(npm, spender, tokenId);
+    }
+
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) external view returns (bool) {
+        return NPMCaller.isApprovedForAll(npm, owner, operator);
+    }
+
+    function setApprovalForAll(address operator, bool approved) external {
+        NPMCaller.setApprovalForAll(npm, operator, approved);
     }
 
     function positionsFull(
@@ -25,21 +57,6 @@ contract NPMCallerWrapper {
         uint256 tokenId
     ) external view returns (Position memory) {
         return NPMCaller.positions(npm, tokenId);
-    }
-
-    function ownerOf(uint256 tokenId) external view returns (address) {
-        return NPMCaller.ownerOf(npm, tokenId);
-    }
-
-    function getApproved(uint256 tokenId) external view returns (address) {
-        return NPMCaller.getApproved(npm, tokenId);
-    }
-
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) external view returns (bool) {
-        return NPMCaller.isApprovedForAll(npm, owner, operator);
     }
 
     function mint(
@@ -111,6 +128,7 @@ contract NPMCallerWrapper {
 /// @dev Test the NPMCaller library.
 contract NPMCallerTest is BaseTest {
     using SafeTransferLib for address;
+    using TickMath for int24;
 
     NPMCallerWrapper internal npmCaller;
     bytes32 internal PERMIT_TYPEHASH;
@@ -155,6 +173,99 @@ contract NPMCallerTest is BaseTest {
         uint256 deadline
     ) internal view returns (uint8 v, bytes32 r, bytes32 s) {
         return vm.sign(pk, permitDigest(spender, tokenId, deadline));
+    }
+
+    /// forge-config: default.fuzz.runs = 256
+    /// forge-config: ci.fuzz.runs = 256
+    function testFuzz_BalanceOf(address owner) public {
+        vm.assume(owner != address(0));
+        assertEq(npmCaller.balanceOf(owner), npm.balanceOf(owner));
+    }
+
+    function test_TotalSupply() public {
+        assertEq(npmCaller.totalSupply(), npm.totalSupply());
+    }
+
+    /// forge-config: default.fuzz.runs = 256
+    /// forge-config: ci.fuzz.runs = 256
+    function testFuzz_OwnerOf(uint256 tokenId) public {
+        tokenId = bound(tokenId, 1, 10000);
+        try npmCaller.ownerOf(tokenId) returns (address owner) {
+            assertEq(owner, npm.ownerOf(tokenId), "ownerOf");
+        } catch Error(string memory reason) {
+            assertEq(reason, "ERC721: owner query for nonexistent token");
+        }
+    }
+
+    function testRevert_OwnerOf() public {
+        vm.expectRevert("ERC721: owner query for nonexistent token");
+        npmCaller.ownerOf(0);
+    }
+
+    /// forge-config: default.fuzz.runs = 256
+    /// forge-config: ci.fuzz.runs = 256
+    function testFuzz_GetApproved(uint256 tokenId) public {
+        tokenId = bound(tokenId, 1, 10000);
+        try npmCaller.getApproved(tokenId) returns (address operator) {
+            assertEq(operator, npm.getApproved(tokenId), "getApproved");
+        } catch Error(string memory reason) {
+            assertEq(reason, "ERC721: approved query for nonexistent token");
+        }
+    }
+
+    function testRevert_GetApproved() public {
+        vm.expectRevert("ERC721: approved query for nonexistent token");
+        npmCaller.getApproved(0);
+    }
+
+    function test_Approve() public {
+        NPMCallerWrapper _npmCaller = npmCaller;
+        uint256 tokenId = npm.totalSupply();
+        vm.prank(npm.ownerOf(tokenId));
+        npm.setApprovalForAll(address(_npmCaller), true);
+        _npmCaller.approve(address(this), tokenId);
+        assertEq(npm.getApproved(tokenId), address(this), "approve");
+    }
+
+    function test_IsApprovedForAll() public {
+        address owner = npm.ownerOf(npm.totalSupply());
+        assertEq(
+            npmCaller.isApprovedForAll(owner, address(this)),
+            npm.isApprovedForAll(owner, address(this)),
+            "isApprovedForAll"
+        );
+    }
+
+    /// forge-config: default.fuzz.runs = 256
+    /// forge-config: ci.fuzz.runs = 256
+    function testFuzz_IsApprovedForAll(uint256 tokenId) public {
+        tokenId = bound(tokenId, 1, 10000);
+        try npmCaller.ownerOf(tokenId) returns (address owner) {
+            assertEq(
+                npmCaller.isApprovedForAll(owner, address(this)),
+                false,
+                "is approved"
+            );
+            vm.prank(owner);
+            npm.setApprovalForAll(address(this), true);
+            assertEq(
+                npmCaller.isApprovedForAll(owner, address(this)),
+                true,
+                "not approved"
+            );
+        } catch Error(string memory reason) {
+            assertEq(reason, "ERC721: owner query for nonexistent token");
+        }
+    }
+
+    function test_SetApprovalForAll() public {
+        NPMCallerWrapper _npmCaller = npmCaller;
+        _npmCaller.setApprovalForAll(address(this), true);
+        assertEq(
+            npm.isApprovedForAll(address(_npmCaller), address(this)),
+            true,
+            "setApprovalForAll"
+        );
     }
 
     /// forge-config: default.fuzz.runs = 256
@@ -221,69 +332,6 @@ contract NPMCallerTest is BaseTest {
         npmCaller.positions(0);
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
-    function testFuzz_OwnerOf(uint256 tokenId) public {
-        tokenId = bound(tokenId, 1, 10000);
-        try npmCaller.ownerOf(tokenId) returns (address owner) {
-            assertEq(owner, npm.ownerOf(tokenId), "ownerOf");
-        } catch Error(string memory reason) {
-            assertEq(reason, "ERC721: owner query for nonexistent token");
-        }
-    }
-
-    function testRevert_OwnerOf() public {
-        vm.expectRevert("ERC721: owner query for nonexistent token");
-        npmCaller.ownerOf(0);
-    }
-
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
-    function testFuzz_GetApproved(uint256 tokenId) public {
-        tokenId = bound(tokenId, 1, 10000);
-        try npmCaller.getApproved(tokenId) returns (address operator) {
-            assertEq(operator, npm.getApproved(tokenId), "getApproved");
-        } catch Error(string memory reason) {
-            assertEq(reason, "ERC721: approved query for nonexistent token");
-        }
-    }
-
-    function testRevert_GetApproved() public {
-        vm.expectRevert("ERC721: approved query for nonexistent token");
-        npmCaller.getApproved(0);
-    }
-
-    function test_IsApprovedForAll() public {
-        address owner = npm.ownerOf(npm.totalSupply());
-        assertEq(
-            npmCaller.isApprovedForAll(owner, address(this)),
-            npm.isApprovedForAll(owner, address(this)),
-            "isApprovedForAll"
-        );
-    }
-
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
-    function testFuzz_IsApprovedForAll(uint256 tokenId) public {
-        tokenId = bound(tokenId, 1, 10000);
-        try npmCaller.ownerOf(tokenId) returns (address owner) {
-            assertEq(
-                npmCaller.isApprovedForAll(owner, address(this)),
-                false,
-                "is approved"
-            );
-            vm.prank(owner);
-            npm.setApprovalForAll(address(this), true);
-            assertEq(
-                npmCaller.isApprovedForAll(owner, address(this)),
-                true,
-                "not approved"
-            );
-        } catch Error(string memory reason) {
-            assertEq(reason, "ERC721: owner query for nonexistent token");
-        }
-    }
-
     function test_Mint() public returns (uint256 tokenId) {
         int24 tick = matchSpacing(currentTick());
         uint256 amount1Desired = 1e18;
@@ -308,10 +356,60 @@ contract NPMCallerTest is BaseTest {
         );
     }
 
+    function test_IncreaseLiquidity() public {
+        uint256 tokenId = test_Mint();
+        uint256 amount0Desired = 1e18;
+        uint256 amount1Desired = 1e18;
+        address _token0 = token0;
+        address _token1 = token1;
+        deal(_token0, address(this), amount0Desired);
+        deal(_token1, address(this), amount1Desired);
+        NPMCallerWrapper _npmCaller = npmCaller;
+        _token0.safeApprove(address(_npmCaller), amount0Desired);
+        _token1.safeApprove(address(_npmCaller), amount1Desired);
+        _npmCaller.increaseLiquidity(
+            INPM.IncreaseLiquidityParams({
+                tokenId: tokenId,
+                amount0Desired: amount0Desired,
+                amount1Desired: amount1Desired,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            })
+        );
+    }
+
+    function test_DecreaseLiquidity() public returns (uint256 tokenId) {
+        tokenId = test_Mint();
+        NPMCallerWrapper _npmCaller = npmCaller;
+        vm.prank(user);
+        npm.approve(address(_npmCaller), tokenId);
+        _npmCaller.decreaseLiquidity(
+            INPM.DecreaseLiquidityParams({
+                tokenId: tokenId,
+                liquidity: _npmCaller.positions(tokenId).liquidity,
+                amount0Min: 0,
+                amount1Min: 0,
+                deadline: block.timestamp
+            })
+        );
+    }
+
+    function test_Collect() public returns (uint256 tokenId) {
+        tokenId = test_DecreaseLiquidity();
+        (, uint256 amount1) = npmCaller.collect(tokenId, address(this));
+        assertEq(amount1, IERC20(token1).balanceOf(address(this)), "amount1");
+    }
+
+    function test_Burn() public {
+        uint256 tokenId = test_Collect();
+        npmCaller.burn(tokenId);
+    }
+
     function test_Permit() public {
         uint256 tokenId = test_Mint();
         NPMCallerWrapper _npmCaller = npmCaller;
-        assertEq(_npmCaller.getApproved(tokenId), address(0), "approved");
+        assertEq(npm.getApproved(tokenId), address(0), "approved");
         uint256 deadline = block.timestamp;
         (uint8 v, bytes32 r, bytes32 s) = permitSig(
             address(_npmCaller),
@@ -319,10 +417,6 @@ contract NPMCallerTest is BaseTest {
             deadline
         );
         _npmCaller.permit(address(_npmCaller), tokenId, deadline, v, r, s);
-        assertEq(
-            _npmCaller.getApproved(tokenId),
-            address(_npmCaller),
-            "not approved"
-        );
+        assertEq(npm.getApproved(tokenId), address(_npmCaller), "not approved");
     }
 }
