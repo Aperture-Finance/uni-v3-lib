@@ -3,7 +3,7 @@ pragma solidity >=0.5.0;
 pragma abicoder v2;
 
 interface IPoolAddress {
-    struct PoolKey {
+    struct IPoolKey {
         address token0;
         address token1;
         uint24 fee;
@@ -13,10 +13,10 @@ interface IPoolAddress {
         address tokenA,
         address tokenB,
         uint24 fee
-    ) external pure returns (PoolKey memory);
+    ) external pure returns (IPoolKey memory);
 
     function computeAddress(
         address factory,
-        PoolKey memory key
+        IPoolKey memory key
     ) external pure returns (address pool);
 }

@@ -29,6 +29,6 @@
     "plugins": [
       "prettier-plugin-solidity"
     ],
-    "endOfLine": "crlf"
+    "endOfLine": "lf"
   }
 }

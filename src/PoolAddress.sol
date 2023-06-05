@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
+import "./TernaryLib.sol";
+
 /// @notice The identifying key of the pool
 struct PoolKey {
     address token0;
@@ -29,12 +31,12 @@ library PoolAddress {
         address tokenB,
         uint24 fee
     ) internal pure returns (PoolKey memory key) {
+        (tokenA, tokenB) = TernaryLib.sort2(tokenA, tokenB);
         /// @solidity memory-safe-assembly
         assembly {
-            // Sort `tokenA` and `tokenB`
-            let diff := mul(xor(tokenA, tokenB), lt(tokenB, tokenA))
-            mstore(key, xor(tokenA, diff))
-            mstore(add(key, 0x20), xor(tokenB, diff))
+            // Must inline this for best performance
+            mstore(key, tokenA)
+            mstore(add(key, 0x20), tokenB)
             mstore(add(key, 0x40), fee)
         }
     }
@@ -80,16 +82,20 @@ library PoolAddress {
     ) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
         assembly {
+            // Cache the free memory pointer.
             let fmp := mload(0x40)
-            mstore(fmp, factory)
-            fmp := add(fmp, 0x0b)
-            mstore8(fmp, 0xff)
-            mstore(add(fmp, 0x15), keccak256(key, 0x60))
-            mstore(add(fmp, 0x35), POOL_INIT_CODE_HASH)
+            // abi.encodePacked(hex'ff', factory, poolHash, POOL_INIT_CODE_HASH)
+            // Prefix the factory address with 0xff.
+            mstore(0, or(factory, 0xff0000000000000000000000000000000000000000))
+            mstore(0x20, keccak256(key, 0x60))
+            mstore(0x40, POOL_INIT_CODE_HASH)
+            // Compute the CREATE2 pool address and clean the upper bits.
             pool := and(
-                keccak256(fmp, 0x55),
+                keccak256(0x0b, 0x55),
                 0xffffffffffffffffffffffffffffffffffffffff
             )
+            // Restore the free memory pointer.
+            mstore(0x40, fmp)
         }
     }
 
@@ -104,12 +110,7 @@ library PoolAddress {
         address tokenB,
         uint24 fee
     ) internal pure returns (address pool) {
-        assembly {
-            // Sort `tokenA` and `tokenB`
-            let diff := mul(xor(tokenA, tokenB), lt(tokenB, tokenA))
-            tokenA := xor(tokenA, diff)
-            tokenB := xor(tokenB, diff)
-        }
+        (tokenA, tokenB) = TernaryLib.sort2(tokenA, tokenB);
         return computeAddressSorted(factory, tokenA, tokenB, fee);
     }
 
@@ -127,24 +128,25 @@ library PoolAddress {
     ) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
         assembly {
-            // Get the free memory pointer.
+            // Cache the free memory pointer.
             let fmp := mload(0x40)
             // Hash the pool key.
-            mstore(fmp, tokenA)
-            mstore(add(fmp, 0x20), tokenB)
-            mstore(add(fmp, 0x40), fee)
-            let poolHash := keccak256(fmp, 0x60)
+            mstore(0, tokenA)
+            mstore(0x20, tokenB)
+            mstore(0x40, fee)
+            let poolHash := keccak256(0, 0x60)
             // abi.encodePacked(hex'ff', factory, poolHash, POOL_INIT_CODE_HASH)
-            mstore(fmp, factory)
-            fmp := add(fmp, 0x0b)
-            mstore8(fmp, 0xff)
-            mstore(add(fmp, 0x15), poolHash)
-            mstore(add(fmp, 0x35), POOL_INIT_CODE_HASH)
+            // Prefix the factory address with 0xff.
+            mstore(0, or(factory, 0xff0000000000000000000000000000000000000000))
+            mstore(0x20, poolHash)
+            mstore(0x40, POOL_INIT_CODE_HASH)
             // Compute the CREATE2 pool address and clean the upper bits.
             pool := and(
-                keccak256(fmp, 0x55),
+                keccak256(0x0b, 0x55),
                 0xffffffffffffffffffffffffffffffffffffffff
             )
+            // Restore the free memory pointer.
+            mstore(0x40, fmp)
         }
     }
 
@@ -159,22 +161,23 @@ library PoolAddress {
     ) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
         assembly {
-            // Get the free memory pointer.
+            // Cache the free memory pointer.
             let fmp := mload(0x40)
             // Hash the pool key.
-            calldatacopy(fmp, key.offset, 0x60)
-            let poolHash := keccak256(fmp, 0x60)
+            calldatacopy(0, key.offset, 0x60)
+            let poolHash := keccak256(0, 0x60)
             // abi.encodePacked(hex'ff', factory, poolHash, POOL_INIT_CODE_HASH)
-            mstore(fmp, factory)
-            fmp := add(fmp, 0x0b)
-            mstore8(fmp, 0xff)
-            mstore(add(fmp, 0x15), poolHash)
-            mstore(add(fmp, 0x35), POOL_INIT_CODE_HASH)
+            // Prefix the factory address with 0xff.
+            mstore(0, or(factory, 0xff0000000000000000000000000000000000000000))
+            mstore(0x20, poolHash)
+            mstore(0x40, POOL_INIT_CODE_HASH)
             // Compute the CREATE2 pool address and clean the upper bits.
             pool := and(
-                keccak256(fmp, 0x55),
+                keccak256(0x0b, 0x55),
                 0xffffffffffffffffffffffffffffffffffffffff
             )
+            // Restore the free memory pointer.
+            mstore(0x40, fmp)
         }
     }
 }

@@ -7,7 +7,29 @@ import {PoolAddress, PoolKey} from "src/PoolAddress.sol";
 import "./Base.t.sol";
 
 /// @dev Expose internal functions to test the PoolAddress library.
-contract PoolAddressValidator {
+contract PoolAddressWrapper is IPoolAddress {
+    function getPoolKey(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external pure returns (IPoolAddress.IPoolKey memory key) {
+        PoolKey memory _key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
+        assembly ("memory-safe") {
+            key := _key
+        }
+    }
+
+    function computeAddress(
+        address factory,
+        IPoolAddress.IPoolKey memory key
+    ) external pure returns (address pool) {
+        PoolKey memory _key;
+        assembly ("memory-safe") {
+            _key := key
+        }
+        return PoolAddress.computeAddress(factory, _key);
+    }
+
     function computeAddressCalldata(
         address factory,
         bytes calldata key
@@ -45,12 +67,12 @@ contract PoolAddressValidator {
 /// @dev Test contract for CallbackValidation and PoolAddress.
 contract PoolAddressTest is BaseTest {
     // Wrapper that exposes the original PoolAddress library.
-    IPoolAddress internal wrapper = IPoolAddress(makeAddr("original"));
-    PoolAddressValidator internal validator;
+    IPoolAddress internal ogWrapper = IPoolAddress(makeAddr("original"));
+    PoolAddressWrapper internal wrapper;
 
     function setUp() public override {
-        validator = new PoolAddressValidator();
-        makeOriginalLibrary(address(wrapper), "PoolAddressTest");
+        wrapper = new PoolAddressWrapper();
+        makeOriginalLibrary(address(ogWrapper), "PoolAddressTest");
     }
 
     /// @notice Test `computeAddress` against the original Uniswap library.
@@ -63,10 +85,26 @@ contract PoolAddressTest is BaseTest {
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
             PoolAddress.computeAddress(address(factory), tokenA, tokenB, fee),
-            wrapper.computeAddress(
+            ogWrapper.computeAddress(
                 address(factory),
-                wrapper.getPoolKey(tokenA, tokenB, fee)
+                ogWrapper.getPoolKey(tokenA, tokenB, fee)
             )
+        );
+    }
+
+    /// @notice Benchmark the gas cost of `computeAddress`.
+    function testGas_ComputeAddress() public view {
+        wrapper.computeAddress(
+            address(factory),
+            wrapper.getPoolKey(WETH, USDC, fee)
+        );
+    }
+
+    /// @notice Benchmark the gas cost of `computeAddress` from the original library.
+    function testGas_ComputeAddress_Og() public view {
+        ogWrapper.computeAddress(
+            address(factory),
+            ogWrapper.getPoolKey(WETH, USDC, fee)
         );
     }
 
@@ -83,9 +121,9 @@ contract PoolAddressTest is BaseTest {
                 address(factory),
                 PoolAddress.getPoolKey(tokenA, tokenB, fee)
             ),
-            wrapper.computeAddress(
+            ogWrapper.computeAddress(
                 address(factory),
-                wrapper.getPoolKey(tokenA, tokenB, fee)
+                ogWrapper.getPoolKey(tokenA, tokenB, fee)
             )
         );
     }
@@ -99,7 +137,7 @@ contract PoolAddressTest is BaseTest {
         vm.assume(tokenA != tokenB);
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
-            validator.computeAddressCalldata(
+            wrapper.computeAddressCalldata(
                 address(factory),
                 abi.encode(PoolAddress.getPoolKey(tokenA, tokenB, fee))
             ),
@@ -118,8 +156,8 @@ contract PoolAddressTest is BaseTest {
         PoolKey memory key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
         address pool = PoolAddress.computeAddress(address(factory), key);
         vm.startPrank(pool);
-        validator.verifyCallback(address(factory), tokenA, tokenB, fee);
-        validator.verifyCallback(address(factory), key);
+        wrapper.verifyCallback(address(factory), tokenA, tokenB, fee);
+        wrapper.verifyCallback(address(factory), key);
     }
 
     /// @notice Test `verifyCallbackCalldata` against other implementation.
@@ -133,6 +171,6 @@ contract PoolAddressTest is BaseTest {
         PoolKey memory key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
         address pool = PoolAddress.computeAddress(address(factory), key);
         vm.prank(pool);
-        validator.verifyCallbackCalldata(address(factory), abi.encode(key));
+        wrapper.verifyCallbackCalldata(address(factory), abi.encode(key));
     }
 }
