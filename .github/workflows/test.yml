@@ -28,15 +28,15 @@ jobs:
           cache-dependency-path: "yarn.lock"
 
       - name: Install dependencies 📦
-        run: yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Compile original libraries with Hardhat
+        run: yarn hardhat compile
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Compile original libraries with Hardhat
-        run: yarn hardhat compile
 
       - name: Run Forge tests
         run: |
