@@ -9,7 +9,7 @@
     "test": "forge test",
     "snapshot": "forge snapshot",
     "snapshot:diff": "forge snapshot --diff",
-    "prettier": "prettier -c {src,test}/**/*.sol --plugin-search-dir node_modules",
+    "prettier": "prettier -c {src,test}/**/*.sol",
     "prettier:fix": "prettier -w {src,test}/**/*.sol"
   },
   "dependencies": {
@@ -29,6 +29,6 @@
     "plugins": [
       "prettier-plugin-solidity"
     ],
-    "endOfLine": "crlf"
+    "endOfLine": "lf"
   }
 }
