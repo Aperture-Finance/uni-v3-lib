@@ -1,4 +1,4 @@
-name: Forge Tests
+name: Test
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   check:
-    name: Foundry project
+    name: Forge Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -28,7 +28,7 @@ jobs:
           cache-dependency-path: "yarn.lock"
 
       - name: Install dependencies 📦
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
