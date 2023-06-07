@@ -144,7 +144,7 @@ library TickBitmap {
     /// @param tick The starting tick
     /// @param tickSpacing The spacing between usable ticks
     /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)
-    /// @param lastWordPos The last read word position in the Bitmap
+    /// @param lastWordPos The last read word position in the Bitmap. Set it to `type(int16).min` for the first call.
     /// @param lastWord The last read word in the Bitmap
     /// @return next The next initialized or uninitialized tick up to 256 ticks away from the current tick
     /// @return initialized Whether the next tick is initialized, as the function only searches within up to 256 ticks
@@ -230,7 +230,7 @@ library TickBitmap {
     /// @param tick The starting tick
     /// @param tickSpacing The spacing between usable ticks
     /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)
-    /// @param lastWordPos The last read word position in the Bitmap
+    /// @param lastWordPos The last read word position in the Bitmap. Set it to `type(int16).min` for the first call.
     /// @param lastWord The last read word in the Bitmap
     /// @return next The next initialized tick
     function nextInitializedTick(

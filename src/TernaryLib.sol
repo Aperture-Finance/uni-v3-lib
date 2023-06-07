@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity >=0.5.0;
 
-/// @title Ternary library for performing ternary operations
+/// @title Library for efficient ternary operations
 /// @author Aperture Finance
 library TernaryLib {
     /// @notice Equivalent to the ternary operator: `condition ? a : b`
@@ -24,6 +24,16 @@ library TernaryLib {
         assembly {
             res := xor(b, mul(xor(a, b), condition))
         }
+    }
+
+    /// @notice Equivalent to: `a < b ? a : b`
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return ternary(a < b, a, b);
+    }
+
+    /// @notice Equivalent to: `a > b ? a : b`
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return ternary(a > b, a, b);
     }
 
     /// @notice Equivalent to: `condition ? (b, a) : (a, b)`

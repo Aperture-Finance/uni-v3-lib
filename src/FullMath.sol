@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4;
 
-import "lib/solady/src/utils/FixedPointMathLib.sol";
+import "solady/src/utils/FixedPointMathLib.sol";
 
 /// @title Contains 512-bit math functions
 /// @author Aperture Finance
