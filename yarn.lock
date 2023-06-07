@@ -2345,6 +2345,11 @@ side-channel@^1.0.4:
     get-intrinsic "^1.0.2"
     object-inspect "^1.9.0"
 
+solady@^0.0.101:
+  version "0.0.101"
+  resolved "https://registry.yarnpkg.com/solady/-/solady-0.0.101.tgz#a4dfb49c43065545e5d0cc6a3c2806fbae75ee76"
+  integrity sha512-EIqwTcPnmw6+VSm/rVhZFmLHSXym0WFx0h3/hhF9NBBSGrnmdaodkvh6Bv4EW9kfMzI5bAB3EzJphR3MZBOX8A==
+
 solc@0.7.3:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/solc/-/solc-0.7.3.tgz#04646961bd867a744f63d2b4e3c0701ffdc7d78a"

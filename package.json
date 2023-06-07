@@ -1,8 +1,27 @@
 {
   "name": "uni-v3-lib",
-  "version": "0.1.0",
+  "description": "A suite of Solidity libraries that have been imported and rewritten from Uniswap's v3-core and v3-periphery",
+  "version": "1.0.0",
   "author": "Aperture Finance",
+  "homepage": "https://aperture.finance/",
   "license": "GPL-2.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aperture-Finance/uni-v3-lib"
+  },
+  "files": [
+    "src/**/*.sol",
+    "!src/test",
+    "LICENSE",
+    "README.md",
+    "package.json",
+    "foundry.toml"
+  ],
+  "keywords": [
+    "ethereum",
+    "smart-contracts",
+    "uniswap-v3"
+  ],
   "scripts": {
     "clean": "hardhat clean && forge clean",
     "compile": "hardhat compile",
@@ -15,7 +34,8 @@
   "dependencies": {
     "@openzeppelin/contracts": "^4.9.0",
     "@uniswap/v3-core": "^1.0.1",
-    "@uniswap/v3-periphery": "^1.4.3"
+    "@uniswap/v3-periphery": "^1.4.3",
+    "solady": "^0.0.101"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-foundry": "^1.0.1",
