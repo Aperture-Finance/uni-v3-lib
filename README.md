@@ -2,6 +2,7 @@
 
 [![Lint](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/lint.yml/badge.svg)](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/lint.yml)
 [![Test](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml/badge.svg)](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml)
+[![npm version](https://img.shields.io/npm/v/@aperture_finance/uni-v3-lib/latest.svg)](https://www.npmjs.com/package/@aperture_finance/uni-v3-lib/v/latest)
 
 The `uni-v3-lib` by Aperture Finance is a suite of Solidity libraries that have been imported and rewritten from
 Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
