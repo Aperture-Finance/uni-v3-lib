@@ -86,7 +86,7 @@ library TickBitmap {
             // mask = (1 << (bitPos + 1)) - 1
             // (bitPos + 1) may be 256 but fine
             // masked = self[wordPos] & mask
-            assembly {
+            assembly ("memory-safe") {
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
                 let mask := sub(shl(add(bitPos, 1), 1), 1)
@@ -115,7 +115,7 @@ library TickBitmap {
             // all the 1s at or to the left of the bitPos
             // mask = ~((1 << bitPos) - 1)
             // masked = self[wordPos] & mask
-            assembly {
+            assembly ("memory-safe") {
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
                 let mask := not(sub(shl(bitPos, 1), 1))
@@ -144,10 +144,12 @@ library TickBitmap {
     /// @param tick The starting tick
     /// @param tickSpacing The spacing between usable ticks
     /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)
-    /// @param lastWordPos The last read word position in the Bitmap. Set it to `type(int16).min` for the first call.
-    /// @param lastWord The last read word in the Bitmap
+    /// @param lastWordPos The last accessed word position in the Bitmap. Set it to `type(int16).min` for the first call.
+    /// @param lastWord The last accessed word in the Bitmap
     /// @return next The next initialized or uninitialized tick up to 256 ticks away from the current tick
     /// @return initialized Whether the next tick is initialized, as the function only searches within up to 256 ticks
+    /// @return wordPos The word position of the next initialized tick in the Bitmap
+    /// @return tickWord The word of the next initialized tick in the Bitmap
     function nextInitializedTickWithinOneWord(
         V3PoolCallee pool,
         int24 tick,
@@ -230,9 +232,11 @@ library TickBitmap {
     /// @param tick The starting tick
     /// @param tickSpacing The spacing between usable ticks
     /// @param lte Whether to search for the next initialized tick to the left (less than or equal to the starting tick)
-    /// @param lastWordPos The last read word position in the Bitmap. Set it to `type(int16).min` for the first call.
-    /// @param lastWord The last read word in the Bitmap
+    /// @param lastWordPos The last accessed word position in the Bitmap. Set it to `type(int16).min` for the first call.
+    /// @param lastWord The last accessed word in the Bitmap
     /// @return next The next initialized tick
+    /// @return wordPos The word position of the next initialized tick in the Bitmap
+    /// @return tickWord The word of the next initialized tick in the Bitmap
     function nextInitializedTick(
         V3PoolCallee pool,
         int24 tick,
