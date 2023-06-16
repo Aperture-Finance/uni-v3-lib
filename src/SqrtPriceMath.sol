@@ -35,39 +35,53 @@ library SqrtPriceMath {
     ) internal pure returns (uint160) {
         // we short circuit amount == 0 because the result is otherwise not guaranteed to equal the input price
         if (amount == 0) return sqrtPX96;
-        uint256 numerator = uint256(liquidity) << FixedPoint96.RESOLUTION;
+        uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
 
         if (add) {
-            uint256 product;
-            // Check no overflow
-            // product = amount * sqrtPX96
-            if ((product = amount.mul(sqrtPX96)).div(amount) == sqrtPX96) {
-                // denominator = liquidity + amount * sqrtPX96
-                uint256 denominator = numerator.add(product);
-                // Check no overflow
-                if (denominator >= numerator)
-                    // always fits in 160 bits
-                    return
-                        uint160(
-                            FullMath.mulDivRoundingUp(
-                                numerator,
-                                sqrtPX96,
-                                denominator
-                            )
-                        );
+            unchecked {
+                uint256 product = amount * sqrtPX96;
+                // checks for overflow
+                if (product.div(amount) == sqrtPX96) {
+                    // denominator = liquidity + amount * sqrtPX96
+                    uint256 denominator = numerator1 + product;
+                    // checks for overflow
+                    if (denominator >= numerator1)
+                        // always fits in 160 bits
+                        return
+                            uint160(
+                                FullMath.mulDivRoundingUp(
+                                    numerator1,
+                                    sqrtPX96,
+                                    denominator
+                                )
+                            );
+                }
             }
 
             // liquidity / (liquidity / sqrtPX96 + amount)
             return
                 uint160(
-                    numerator.divRoundingUp(numerator.div(sqrtPX96) + amount)
+                    numerator1.divRoundingUp(numerator1.div(sqrtPX96) + amount)
                 );
         } else {
-            // No overflows or underflows allowed
-            uint256 denominator = numerator - amount * sqrtPX96;
+            uint256 denominator;
+            assembly ("memory-safe") {
+                // if the product overflows, we know the denominator underflows
+                // in addition, we must check that the denominator does not underflow
+                let product := mul(amount, sqrtPX96)
+                if iszero(
+                    and(
+                        eq(div(product, amount), sqrtPX96),
+                        gt(numerator1, product)
+                    )
+                ) {
+                    revert(0, 0)
+                }
+                denominator := sub(numerator1, product)
+            }
             return
                 FullMath
-                    .mulDivRoundingUp(numerator, sqrtPX96, denominator)
+                    .mulDivRoundingUp(numerator1, sqrtPX96, denominator)
                     .toUint160();
         }
     }

@@ -40,7 +40,7 @@ library UnsafeMath {
         uint256 y
     ) internal pure returns (uint256 z) {
         assembly {
-            z := add(iszero(iszero(mod(x, y))), div(x, y))
+            z := add(div(x, y), gt(mod(x, y), 0))
         }
     }
 }
