@@ -207,60 +207,53 @@ library SqrtPriceMath {
     /// @notice Gets the amount0 delta between two prices
     /// @dev Calculates liquidity / sqrt(lower) - liquidity / sqrt(upper),
     /// i.e. liquidity * (sqrt(upper) - sqrt(lower)) / (sqrt(upper) * sqrt(lower))
-    /// @param sqrtRatioX96Lower A sqrt price assumed to be lower otherwise swapped
-    /// @param sqrtRatioX96Upper Another sqrt price
+    /// @param sqrtRatioAX96 A sqrt price assumed to be lower otherwise swapped
+    /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The amount of usable liquidity
     /// @param roundUp Whether to round the amount up or down
     /// @return amount0 Amount of token0 required to cover a position of size liquidity between the two passed prices
     function getAmount0Delta(
-        uint160 sqrtRatioX96Lower,
-        uint160 sqrtRatioX96Upper,
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount0) {
-        (sqrtRatioX96Lower, sqrtRatioX96Upper) = TernaryLib.sort2(
-            sqrtRatioX96Lower,
-            sqrtRatioX96Upper
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
+            sqrtRatioAX96,
+            sqrtRatioBX96
         );
         assembly ("memory-safe") {
-            if iszero(sqrtRatioX96Lower) {
+            if iszero(sqrtRatioAX96) {
                 revert(0, 0)
             }
         }
         uint256 numerator1 = uint256(liquidity) << FixedPoint96.RESOLUTION;
-        uint256 numerator2 = sqrtRatioX96Upper.sub(sqrtRatioX96Lower);
+        uint256 numerator2 = sqrtRatioBX96.sub(sqrtRatioAX96);
         /**
          * Equivalent to:
          *   roundUp
-         *       ? UnsafeMath.divRoundingUp(
-         *           FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96),
-         *           sqrtRatioAX96
-         *       )
+         *       ? FullMath.mulDivRoundingUp(numerator1, numerator2, sqrtRatioBX96).divRoundingUp(sqrtRatioAX96)
          *       : FullMath.mulDiv(numerator1, numerator2, sqrtRatioBX96) / sqrtRatioAX96;
-         * If `md = mulDiv(n1, n2, sru) = mulDivRoundingUp(n1, n2, sru)`, add `roundUp && md % srl > 0`.
-         * If `md = mulDiv(n1, n2, sru)` and `mulDivRoundingUp(n1, n2, sru)` differs by 1 and `srl > 0`,
-         * then `(md + 1).divRoundingUp(srl)` = `md.div(srl) + 1` whether `srl` fully divides `md` or not.
+         * If `md = mulDiv(n1, n2, srb) == mulDivRoundingUp(n1, n2, srb)`, then `mulmod(n1, n2, srb) == 0`.
+         * Add `roundUp && md % sra > 0` to `div(md, sra)`.
+         * If `md = mulDiv(n1, n2, srb)` and `mulDivRoundingUp(n1, n2, srb)` differs by 1 and `sra > 0`,
+         * then `(md + 1).divRoundingUp(sra) == md.div(sra) + 1` whether `sra` fully divides `md` or not.
          */
         uint256 mulDivResult = FullMath.mulDiv(
             numerator1,
             numerator2,
-            sqrtRatioX96Upper
+            sqrtRatioBX96
         );
         assembly {
             amount0 := add(
-                div(mulDivResult, sqrtRatioX96Lower),
+                div(mulDivResult, sqrtRatioAX96),
                 and(
-                    iszero(
-                        iszero(
-                            or(
-                                mod(mulDivResult, sqrtRatioX96Lower),
-                                mulmod(
-                                    numerator1,
-                                    numerator2,
-                                    sqrtRatioX96Upper
-                                )
-                            )
-                        )
+                    gt(
+                        or(
+                            mod(mulDivResult, sqrtRatioAX96),
+                            mulmod(numerator1, numerator2, sqrtRatioBX96)
+                        ),
+                        0
                     ),
                     roundUp
                 )
@@ -270,36 +263,36 @@ library SqrtPriceMath {
 
     /// @notice Gets the amount1 delta between two prices
     /// @dev Calculates liquidity * (sqrt(upper) - sqrt(lower))
-    /// @param sqrtRatioX96Lower A sqrt price assumed to be lower otherwise swapped
-    /// @param sqrtRatioX96Upper Another sqrt price
+    /// @param sqrtRatioAX96 A sqrt price assumed to be lower otherwise swapped
+    /// @param sqrtRatioBX96 Another sqrt price
     /// @param liquidity The amount of usable liquidity
     /// @param roundUp Whether to round the amount up, or down
     /// @return amount1 Amount of token1 required to cover a position of size liquidity between the two passed prices
     function getAmount1Delta(
-        uint160 sqrtRatioX96Lower,
-        uint160 sqrtRatioX96Upper,
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount1) {
-        (sqrtRatioX96Lower, sqrtRatioX96Upper) = TernaryLib.sort2(
-            sqrtRatioX96Lower,
-            sqrtRatioX96Upper
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
+            sqrtRatioAX96,
+            sqrtRatioBX96
         );
-        uint256 numerator = sqrtRatioX96Upper.sub(sqrtRatioX96Lower);
+        uint256 numerator = sqrtRatioBX96.sub(sqrtRatioAX96);
         uint256 denominator = FixedPoint96.Q96;
         /**
          * Equivalent to:
          *   amount1 = roundUp
          *       ? FullMath.mulDivRoundingUp(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96)
          *       : FullMath.mulDiv(liquidity, sqrtRatioBX96 - sqrtRatioAX96, FixedPoint96.Q96);
-         * Cannot overflow because uint128 * uint160 >> 96 < 1 << 192.
+         * Cannot overflow because `type(uint128).max * type(uint160).max >> 96 < (1 << 192)`.
          */
         amount1 = FullMath.mulDiv96(liquidity, numerator);
         assembly {
             amount1 := add(
                 amount1,
                 and(
-                    iszero(iszero(mulmod(liquidity, numerator, denominator))),
+                    gt(mulmod(liquidity, numerator, denominator), 0),
                     roundUp
                 )
             )
@@ -334,7 +327,7 @@ library SqrtPriceMath {
             mask := sub(sign, 1)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
-        // amount0Abs = liquidity / sqrt(lower) - liquidity / sqrt(upper) < 2**224
+        // amount0Abs = liquidity / sqrt(lower) - liquidity / sqrt(upper) < type(uint224).max
         // always fits in 224 bits, no need for toInt256()
         uint256 amount0Abs = getAmount0Delta(
             sqrtRatioAX96,
@@ -377,7 +370,7 @@ library SqrtPriceMath {
             mask := sub(sign, 1)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
-        // amount1Abs = liquidity * (sqrt(upper) - sqrt(lower)) < 2**192
+        // amount1Abs = liquidity * (sqrt(upper) - sqrt(lower)) < type(uint192).max
         // always fits in 192 bits, no need for toInt256()
         uint256 amount1Abs = getAmount1Delta(
             sqrtRatioAX96,
