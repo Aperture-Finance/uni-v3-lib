@@ -4,10 +4,13 @@
 [![Test](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml/badge.svg)](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/@aperture_finance/uni-v3-lib/latest.svg)](https://www.npmjs.com/package/@aperture_finance/uni-v3-lib/v/latest)
 
-The `uni-v3-lib` by Aperture Finance is a suite of Solidity libraries that have been imported and rewritten from
-Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
-repositories. The goal of this project is to provide external integrators with a set of libraries that are crucial for
-interaction with the Uniswap V3 protocol.
+The `uni-v3-lib` by Aperture Finance consists of a suite of Solidity libraries that have been imported and rewritten
+from Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
+repositories. This project aims to equip external integrators with a set of libraries crucial for interaction with the
+Uniswap V3 protocol. The `uni-v3-lib` is currently in use by
+Aperture's [liquidity position automation contract](https://github.com/Aperture-Finance/core-contracts), the audit
+report of which can be
+found [here](https://github.com/NaryaAI/publications/blob/1468e568712d5e2aa9b0ecde0a16d3f9f1d715ef/Aperture%20UniV3Automan%20Report.pdf).
 
 ## Overview
 
@@ -32,9 +35,9 @@ heuristics and techniques are documented by extensive annotations in the source 
 | TickMath      | testGas_GetSqrtRatioAtTick | 168533   | 148160    | 12.09%         |
 | TickMath      | testGas_GetTickAtSqrtRatio | 307781   | 255519    | 16.98%         |
 
-The gas measured is the total gas used by the test transaction, including the gas used to call the test wrapper
+*The gas measured is the total gas used by the test transaction, including the gas used to call the test wrapper
 contract. The actual percentage difference in gas for the internal library functions is higher than the numbers shown
-above.
+above.*
 
 ## Libraries
 

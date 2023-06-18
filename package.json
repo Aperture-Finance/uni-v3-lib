@@ -1,7 +1,7 @@
 {
   "name": "@aperture_finance/uni-v3-lib",
   "description": "A suite of Solidity libraries that have been imported and rewritten from Uniswap's v3-core and v3-periphery",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "Aperture Finance",
   "homepage": "https://aperture.finance/",
   "license": "GPL-2.0-or-later",
