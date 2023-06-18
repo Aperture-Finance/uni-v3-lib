@@ -291,10 +291,7 @@ library SqrtPriceMath {
         assembly {
             amount1 := add(
                 amount1,
-                and(
-                    gt(mulmod(liquidity, numerator, denominator), 0),
-                    roundUp
-                )
+                and(gt(mulmod(liquidity, numerator, denominator), 0), roundUp)
             )
         }
     }
