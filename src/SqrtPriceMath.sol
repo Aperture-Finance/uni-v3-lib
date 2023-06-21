@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.4;
 
 import "@uniswap/v3-core/contracts/libraries/SafeCast.sol";
