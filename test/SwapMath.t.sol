@@ -107,9 +107,9 @@ contract SwapMathTest is BaseTest {
                     feePips
                 );
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96);
-            assertEq(amountIn, ogAmountIn);
+            // The fee amount invariant is forgone but the total amount in and out should be the same.
+            assertEq(amountIn + feeAmount, ogAmountIn + ogFeeAmount);
             assertEq(amountOut, ogAmountOut);
-            assertEq(feeAmount, ogFeeAmount);
         } catch (bytes memory) {
             vm.expectRevert();
             wrapper.computeSwapStep(
