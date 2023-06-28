@@ -12,13 +12,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint256 amount,
         bool add
     ) external pure override returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add);
     }
 
     function getNextSqrtPriceFromAmount1RoundingDown(
@@ -27,13 +21,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint256 amount,
         bool add
     ) external pure override returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add);
     }
 
     function getNextSqrtPriceFromInput(
@@ -42,13 +30,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint256 amountIn,
         bool zeroForOne
     ) external pure override returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromInput(
-                sqrtPX96,
-                liquidity,
-                amountIn,
-                zeroForOne
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromInput(sqrtPX96, liquidity, amountIn, zeroForOne);
     }
 
     function getNextSqrtPriceFromOutput(
@@ -57,13 +39,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint256 amountOut,
         bool zeroForOne
     ) external pure override returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromOutput(
-                sqrtPX96,
-                liquidity,
-                amountOut,
-                zeroForOne
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromOutput(sqrtPX96, liquidity, amountOut, zeroForOne);
     }
 
     function getAmount0Delta(
@@ -72,13 +48,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) external pure override returns (uint256) {
-        return
-            SqrtPriceMath.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
     }
 
     function getAmount1Delta(
@@ -87,13 +57,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) external pure override returns (uint256) {
-        return
-            SqrtPriceMath.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
     }
 
     function getAmount0Delta(
@@ -101,12 +65,7 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external pure override returns (int256) {
-        return
-            SqrtPriceMath.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
     function getAmount1Delta(
@@ -114,11 +73,6 @@ contract SqrtPriceMathTest is ISqrtPriceMath {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external pure override returns (int256) {
-        return
-            SqrtPriceMath.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 }

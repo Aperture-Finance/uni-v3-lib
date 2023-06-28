@@ -28,18 +28,12 @@ contract BitMathTest is BaseTest {
 
     function testFuzz_MSB(uint256 x) public {
         x = bound(x, 1, type(uint256).max);
-        assertEq(
-            wrapper.mostSignificantBit(x),
-            ogWrapper.mostSignificantBit(x)
-        );
+        assertEq(wrapper.mostSignificantBit(x), ogWrapper.mostSignificantBit(x));
     }
 
     function testFuzz_LSB(uint256 x) public {
         x = bound(x, 1, type(uint256).max);
-        assertEq(
-            wrapper.leastSignificantBit(x),
-            ogWrapper.leastSignificantBit(x)
-        );
+        assertEq(wrapper.leastSignificantBit(x), ogWrapper.leastSignificantBit(x));
     }
 
     function testGas_MSB() public view {

@@ -17,11 +17,7 @@ contract FullMathTest is BaseTest {
     }
 
     /// @dev Helper function to assume that the `mulDiv` will not overflow.
-    function assumeNoOverflow(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) internal pure {
+    function assumeNoOverflow(uint256 a, uint256 b, uint256 denominator) internal pure {
         // Most significant 256 bits of the product.
         uint256 prod1;
         assembly {
@@ -34,58 +30,30 @@ contract FullMathTest is BaseTest {
     }
 
     /// @notice Test `mulDiv` against the original Uniswap library.
-    function testFuzz_MulDiv_Og(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) public {
+    function testFuzz_MulDiv_Og(uint256 a, uint256 b, uint256 denominator) public {
         assumeNoOverflow(a, b, denominator);
-        assertEq(
-            FullMath.mulDiv(a, b, denominator),
-            wrapper.mulDiv(a, b, denominator)
-        );
+        assertEq(FullMath.mulDiv(a, b, denominator), wrapper.mulDiv(a, b, denominator));
     }
 
     /// @notice Test `mulDiv` against OpenZeppelin's.
-    function testFuzz_MulDiv_OZ(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) public {
+    function testFuzz_MulDiv_OZ(uint256 a, uint256 b, uint256 denominator) public {
         assumeNoOverflow(a, b, denominator);
-        assertEq(
-            FullMath.mulDiv(a, b, denominator),
-            Math.mulDiv(a, b, denominator)
-        );
+        assertEq(FullMath.mulDiv(a, b, denominator), Math.mulDiv(a, b, denominator));
     }
 
     /// @notice Test `mulDivRoundingUp` against the original Uniswap library.
-    function testFuzz_MulDivUp_Og(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) public {
+    function testFuzz_MulDivUp_Og(uint256 a, uint256 b, uint256 denominator) public {
         assumeNoOverflow(a, b, denominator);
         if (Math.mulDiv(a, b, denominator) < type(uint256).max) {
-            assertEq(
-                FullMath.mulDivRoundingUp(a, b, denominator),
-                wrapper.mulDivRoundingUp(a, b, denominator)
-            );
+            assertEq(FullMath.mulDivRoundingUp(a, b, denominator), wrapper.mulDivRoundingUp(a, b, denominator));
         }
     }
 
     /// @notice Test `mulDivRoundingUp` against OpenZeppelin's.
-    function testFuzz_MulDivUp_OZ(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) public {
+    function testFuzz_MulDivUp_OZ(uint256 a, uint256 b, uint256 denominator) public {
         assumeNoOverflow(a, b, denominator);
         if (Math.mulDiv(a, b, denominator) < type(uint256).max) {
-            assertEq(
-                FullMath.mulDivRoundingUp(a, b, denominator),
-                Math.mulDiv(a, b, denominator, Math.Rounding.Up)
-            );
+            assertEq(FullMath.mulDivRoundingUp(a, b, denominator), Math.mulDiv(a, b, denominator, Math.Rounding.Up));
         }
     }
 

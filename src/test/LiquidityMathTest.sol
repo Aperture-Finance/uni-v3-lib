@@ -6,10 +6,7 @@ import "./interfaces/ILiquidityMath.sol";
 
 /// @dev Expose internal functions to test the LiquidityMath library.
 contract LiquidityMathTest is ILiquidityMath {
-    function addDelta(
-        uint128 x,
-        int128 y
-    ) external pure override returns (uint128 z) {
+    function addDelta(uint128 x, int128 y) external pure override returns (uint128 z) {
         return LiquidityMath.addDelta(x, y);
     }
 }

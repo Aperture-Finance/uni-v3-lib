@@ -13,14 +13,7 @@ contract SwapMathTest is ISwapMath {
         int256 amountRemaining,
         uint24 feePips
     ) external pure override returns (uint160, uint256, uint256, uint256) {
-        return
-            SwapMath.computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                amountRemaining,
-                feePips
-            );
+        return SwapMath.computeSwapStep(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, amountRemaining, feePips);
     }
 
     function computeSwapStepExactIn(
@@ -29,21 +22,15 @@ contract SwapMathTest is ISwapMath {
         uint128 liquidity,
         uint256 amountRemaining,
         uint24 feePips
-    )
-        external
-        pure
-        override
-        returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
-    {
+    ) external pure override returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut) {
         uint256 feeAmount;
-        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath
-            .computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                int256(amountRemaining),
-                feePips
-            );
+        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath.computeSwapStep(
+            sqrtRatioCurrentX96,
+            sqrtRatioTargetX96,
+            liquidity,
+            int256(amountRemaining),
+            feePips
+        );
         amountIn += feeAmount;
     }
 
@@ -53,21 +40,15 @@ contract SwapMathTest is ISwapMath {
         uint128 liquidity,
         uint256 amountRemaining,
         uint24 feePips
-    )
-        external
-        pure
-        override
-        returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut)
-    {
+    ) external pure override returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut) {
         uint256 feeAmount;
-        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath
-            .computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                -int256(amountRemaining),
-                feePips
-            );
+        (sqrtRatioNextX96, amountIn, amountOut, feeAmount) = SwapMath.computeSwapStep(
+            sqrtRatioCurrentX96,
+            sqrtRatioTargetX96,
+            liquidity,
+            -int256(amountRemaining),
+            feePips
+        );
         amountIn += feeAmount;
     }
 }

@@ -18,19 +18,14 @@ struct PoolKey {
 /// allocation, but you can only use memory starting from the current offset given by the free memory pointer."
 /// according to https://docs.soliditylang.org/en/latest/assembly.html#memory-safety.
 library PoolAddress {
-    bytes32 internal constant POOL_INIT_CODE_HASH =
-        0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
+    bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
 
     /// @notice Returns PoolKey: the ordered tokens with the matched fee levels
     /// @param tokenA The first token of a pool, unsorted
     /// @param tokenB The second token of a pool, unsorted
     /// @param fee The fee level of the pool
     /// @return key The pool details with ordered token0 and token1 assignments
-    function getPoolKey(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) internal pure returns (PoolKey memory key) {
+    function getPoolKey(address tokenA, address tokenB, uint24 fee) internal pure returns (PoolKey memory key) {
         (tokenA, tokenB) = TernaryLib.sort2(tokenA, tokenB);
         /// @solidity memory-safe-assembly
         assembly {
@@ -46,11 +41,7 @@ library PoolAddress {
     /// @param token1 The second token of a pool, already sorted
     /// @param fee The fee level of the pool
     /// @return key The pool details with ordered token0 and token1 assignments
-    function getPoolKeySorted(
-        address token0,
-        address token1,
-        uint24 fee
-    ) internal pure returns (PoolKey memory key) {
+    function getPoolKeySorted(address token0, address token1, uint24 fee) internal pure returns (PoolKey memory key) {
         /// @solidity memory-safe-assembly
         assembly {
             mstore(key, token0)
@@ -63,10 +54,7 @@ library PoolAddress {
     /// @param factory The Uniswap V3 factory contract address
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
-    function computeAddress(
-        address factory,
-        PoolKey memory key
-    ) internal pure returns (address pool) {
+    function computeAddress(address factory, PoolKey memory key) internal pure returns (address pool) {
         require(key.token0 < key.token1);
         return computeAddressSorted(factory, key);
     }
@@ -76,10 +64,7 @@ library PoolAddress {
     /// @param factory The Uniswap V3 factory contract address
     /// @param key The PoolKey
     /// @return pool The contract address of the V3 pool
-    function computeAddressSorted(
-        address factory,
-        PoolKey memory key
-    ) internal pure returns (address pool) {
+    function computeAddressSorted(address factory, PoolKey memory key) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
         assembly {
             // Cache the free memory pointer.
@@ -90,10 +75,7 @@ library PoolAddress {
             mstore(0x20, keccak256(key, 0x60))
             mstore(0x40, POOL_INIT_CODE_HASH)
             // Compute the CREATE2 pool address and clean the upper bits.
-            pool := and(
-                keccak256(0x0b, 0x55),
-                0xffffffffffffffffffffffffffffffffffffffff
-            )
+            pool := and(keccak256(0x0b, 0x55), 0xffffffffffffffffffffffffffffffffffffffff)
             // Restore the free memory pointer.
             mstore(0x40, fmp)
         }
@@ -141,10 +123,7 @@ library PoolAddress {
             mstore(0x20, poolHash)
             mstore(0x40, POOL_INIT_CODE_HASH)
             // Compute the CREATE2 pool address and clean the upper bits.
-            pool := and(
-                keccak256(0x0b, 0x55),
-                0xffffffffffffffffffffffffffffffffffffffff
-            )
+            pool := and(keccak256(0x0b, 0x55), 0xffffffffffffffffffffffffffffffffffffffff)
             // Restore the free memory pointer.
             mstore(0x40, fmp)
         }
@@ -155,10 +134,7 @@ library PoolAddress {
     /// @param factory The Uniswap V3 factory contract address
     /// @param key The abi encoded PoolKey of the V3 pool
     /// @return pool The contract address of the V3 pool
-    function computeAddressCalldata(
-        address factory,
-        bytes calldata key
-    ) internal pure returns (address pool) {
+    function computeAddressCalldata(address factory, bytes calldata key) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
         assembly {
             // Cache the free memory pointer.
@@ -172,10 +148,7 @@ library PoolAddress {
             mstore(0x20, poolHash)
             mstore(0x40, POOL_INIT_CODE_HASH)
             // Compute the CREATE2 pool address and clean the upper bits.
-            pool := and(
-                keccak256(0x0b, 0x55),
-                0xffffffffffffffffffffffffffffffffffffffff
-            )
+            pool := and(keccak256(0x0b, 0x55), 0xffffffffffffffffffffffffffffffffffffffff)
             // Restore the free memory pointer.
             mstore(0x40, fmp)
         }

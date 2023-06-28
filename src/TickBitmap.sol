@@ -11,10 +11,7 @@ import "./PoolCaller.sol";
 /// @dev The mapping uses int16 for keys since ticks are represented as int24 and there are 256 (2^8) values per word.
 library TickBitmap {
     /// @dev round towards negative infinity
-    function compress(
-        int24 tick,
-        int24 tickSpacing
-    ) internal pure returns (int24 compressed) {
+    function compress(int24 tick, int24 tickSpacing) internal pure returns (int24 compressed) {
         // compressed = tick / tickSpacing;
         // if (tick < 0 && tick % tickSpacing != 0) compressed--;
         assembly {
@@ -30,9 +27,7 @@ library TickBitmap {
     /// @param tick The tick for which to compute the position
     /// @return wordPos The key in the mapping containing the word in which the bit is stored
     /// @return bitPos The bit position in the word where the flag is stored
-    function position(
-        int24 tick
-    ) private pure returns (int16 wordPos, uint8 bitPos) {
+    function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos) {
         assembly {
             // signed arithmetic shift right
             wordPos := sar(8, tick)
@@ -44,11 +39,7 @@ library TickBitmap {
     /// @param self The mapping in which to flip the tick
     /// @param tick The tick to flip
     /// @param tickSpacing The spacing between usable ticks
-    function flipTick(
-        mapping(int16 => uint256) storage self,
-        int24 tick,
-        int24 tickSpacing
-    ) internal {
+    function flipTick(mapping(int16 => uint256) storage self, int24 tick, int24 tickSpacing) internal {
         assembly ("memory-safe") {
             // ensure that the tick is spaced
             if smod(tick, tickSpacing) {
@@ -161,11 +152,7 @@ library TickBitmap {
         bool lte,
         int16 lastWordPos,
         uint256 lastWord
-    )
-        internal
-        view
-        returns (int24 next, bool initialized, int16 wordPos, uint256 tickWord)
-    {
+    ) internal view returns (int24 next, bool initialized, int16 wordPos, uint256 tickWord) {
         int24 compressed = compress(tick, tickSpacing);
         uint8 bitPos;
         uint256 masked;
@@ -173,9 +160,7 @@ library TickBitmap {
         if (lte) {
             (wordPos, bitPos) = position(compressed);
             // Reuse the same word if the position doesn't change
-            tickWord = wordPos == lastWordPos
-                ? lastWord
-                : pool.tickBitmap(wordPos);
+            tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
             // all the 1s at or to the right of the current bitPos
             // mask = (1 << (bitPos + 1)) - 1
             // (bitPos + 1) may be 256 but fine
@@ -203,9 +188,7 @@ library TickBitmap {
                 (wordPos, bitPos) = position(++compressed);
             }
             // Reuse the same word if the position doesn't change
-            tickWord = wordPos == lastWordPos
-                ? lastWord
-                : pool.tickBitmap(wordPos);
+            tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
             // all the 1s at or to the left of the bitPos
             // mask = ~((1 << bitPos) - 1)
             assembly {
@@ -256,9 +239,7 @@ library TickBitmap {
         if (lte) {
             (wordPos, bitPos) = position(compressed);
             // Reuse the same word if the position doesn't change
-            tickWord = wordPos == lastWordPos
-                ? lastWord
-                : pool.tickBitmap(wordPos);
+            tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
             // all the 1s at or to the right of the current bitPos
             // mask = (1 << (bitPos + 1)) - 1
             // (bitPos + 1) may be 256 but fine
@@ -280,9 +261,7 @@ library TickBitmap {
                 (wordPos, bitPos) = position(++compressed);
             }
             // Reuse the same word if the position doesn't change
-            tickWord = wordPos == lastWordPos
-                ? lastWord
-                : pool.tickBitmap(wordPos);
+            tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
             // all the 1s at or to the left of the bitPos
             // mask = ~((1 << bitPos) - 1)
             assembly {

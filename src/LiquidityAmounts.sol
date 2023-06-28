@@ -33,19 +33,9 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint256 amount0
     ) internal pure returns (uint128 liquidity) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
         uint256 intermediate = FullMath.mulDiv96(sqrtRatioAX96, sqrtRatioBX96);
-        return
-            toUint128(
-                FullMath.mulDiv(
-                    amount0,
-                    intermediate,
-                    sqrtRatioBX96.sub(sqrtRatioAX96)
-                )
-            );
+        return toUint128(FullMath.mulDiv(amount0, intermediate, sqrtRatioBX96.sub(sqrtRatioAX96)));
     }
 
     /// @notice Computes the amount of liquidity received for a given amount of token1 and price range
@@ -59,18 +49,8 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint256 amount1
     ) internal pure returns (uint128 liquidity) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
-        return
-            toUint128(
-                FullMath.mulDiv(
-                    amount1,
-                    FixedPoint96.Q96,
-                    sqrtRatioBX96.sub(sqrtRatioAX96)
-                )
-            );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
+        return toUint128(FullMath.mulDiv(amount1, FixedPoint96.Q96, sqrtRatioBX96.sub(sqrtRatioAX96)));
     }
 
     /// @notice Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
@@ -88,41 +68,19 @@ library LiquidityAmounts {
         uint256 amount0,
         uint256 amount1
     ) internal pure returns (uint128 liquidity) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
-            liquidity = getLiquidityForAmount0(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                amount0
-            );
+            liquidity = getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0);
         } else if (sqrtRatioX96 < sqrtRatioBX96) {
-            uint128 liquidity0 = getLiquidityForAmount0(
-                sqrtRatioX96,
-                sqrtRatioBX96,
-                amount0
-            );
-            uint128 liquidity1 = getLiquidityForAmount1(
-                sqrtRatioAX96,
-                sqrtRatioX96,
-                amount1
-            );
+            uint128 liquidity0 = getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
+            uint128 liquidity1 = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
             // liquidity = min(liquidity0, liquidity1);
             assembly {
-                liquidity := xor(
-                    liquidity0,
-                    mul(xor(liquidity0, liquidity1), lt(liquidity1, liquidity0))
-                )
+                liquidity := xor(liquidity0, mul(xor(liquidity0, liquidity1), lt(liquidity1, liquidity0)))
             }
         } else {
-            liquidity = getLiquidityForAmount1(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                amount1
-            );
+            liquidity = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1);
         }
     }
 
@@ -136,17 +94,10 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) internal pure returns (uint256 amount0) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
         return
             FullMath
-                .mulDiv(
-                    uint256(liquidity) << FixedPoint96.RESOLUTION,
-                    sqrtRatioBX96.sub(sqrtRatioAX96),
-                    sqrtRatioBX96
-                )
+                .mulDiv(uint256(liquidity) << FixedPoint96.RESOLUTION, sqrtRatioBX96.sub(sqrtRatioAX96), sqrtRatioBX96)
                 .div(sqrtRatioAX96);
     }
 
@@ -160,10 +111,7 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) internal pure returns (uint256 amount1) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
         return FullMath.mulDiv96(liquidity, sqrtRatioBX96.sub(sqrtRatioAX96));
     }
 
@@ -181,34 +129,15 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) internal pure returns (uint256 amount0, uint256 amount1) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(
-            sqrtRatioAX96,
-            sqrtRatioBX96
-        );
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
-            amount0 = getAmount0ForLiquidity(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+            amount0 = getAmount0ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
         } else if (sqrtRatioX96 < sqrtRatioBX96) {
-            amount0 = getAmount0ForLiquidity(
-                sqrtRatioX96,
-                sqrtRatioBX96,
-                liquidity
-            );
-            amount1 = getAmount1ForLiquidity(
-                sqrtRatioAX96,
-                sqrtRatioX96,
-                liquidity
-            );
+            amount0 = getAmount0ForLiquidity(sqrtRatioX96, sqrtRatioBX96, liquidity);
+            amount1 = getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioX96, liquidity);
         } else {
-            amount1 = getAmount1ForLiquidity(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+            amount1 = getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
         }
     }
 }

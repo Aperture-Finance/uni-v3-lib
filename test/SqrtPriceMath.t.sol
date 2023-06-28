@@ -12,13 +12,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint256 amount,
         bool add
     ) external pure returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add);
     }
 
     function getNextSqrtPriceFromAmount1RoundingDown(
@@ -27,13 +21,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint256 amount,
         bool add
     ) external pure returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add);
     }
 
     function getNextSqrtPriceFromInput(
@@ -42,13 +30,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint256 amountIn,
         bool zeroForOne
     ) external pure returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromInput(
-                sqrtPX96,
-                liquidity,
-                amountIn,
-                zeroForOne
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromInput(sqrtPX96, liquidity, amountIn, zeroForOne);
     }
 
     function getNextSqrtPriceFromOutput(
@@ -57,13 +39,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint256 amountOut,
         bool zeroForOne
     ) external pure returns (uint160) {
-        return
-            SqrtPriceMath.getNextSqrtPriceFromOutput(
-                sqrtPX96,
-                liquidity,
-                amountOut,
-                zeroForOne
-            );
+        return SqrtPriceMath.getNextSqrtPriceFromOutput(sqrtPX96, liquidity, amountOut, zeroForOne);
     }
 
     function getAmount0Delta(
@@ -72,13 +48,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) external pure returns (uint256) {
-        return
-            SqrtPriceMath.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
     }
 
     function getAmount1Delta(
@@ -87,13 +57,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) external pure returns (uint256) {
-        return
-            SqrtPriceMath.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
     }
 
     function getAmount0Delta(
@@ -101,12 +65,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external pure returns (int256) {
-        return
-            SqrtPriceMath.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return SqrtPriceMath.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
     function getAmount1Delta(
@@ -114,12 +73,7 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
         uint160 sqrtRatioBX96,
         int128 liquidity
     ) external pure returns (int256) {
-        return
-            SqrtPriceMath.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return SqrtPriceMath.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 }
 
@@ -141,31 +95,13 @@ contract SqrtPriceMathTest is BaseTest {
         bool add
     ) external {
         sqrtPX96 = boundUint160(sqrtPX96);
-        try
-            ogWrapper.getNextSqrtPriceFromAmount0RoundingUp(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            )
-        returns (uint160 expected) {
-            assertEq(
-                wrapper.getNextSqrtPriceFromAmount0RoundingUp(
-                    sqrtPX96,
-                    liquidity,
-                    amount,
-                    add
-                ),
-                expected
-            );
+        try ogWrapper.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add) returns (
+            uint160 expected
+        ) {
+            assertEq(wrapper.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getNextSqrtPriceFromAmount0RoundingUp(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+            wrapper.getNextSqrtPriceFromAmount0RoundingUp(sqrtPX96, liquidity, amount, add);
         }
     }
 
@@ -177,36 +113,14 @@ contract SqrtPriceMathTest is BaseTest {
     ) external {
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         sqrtPX96 = boundUint160(sqrtPX96);
-        amount = bound(
-            amount,
-            0,
-            FullMath.mulDiv96(type(uint160).max, liquidity)
-        );
-        try
-            ogWrapper.getNextSqrtPriceFromAmount1RoundingDown(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            )
-        returns (uint160 expected) {
-            assertEq(
-                wrapper.getNextSqrtPriceFromAmount1RoundingDown(
-                    sqrtPX96,
-                    liquidity,
-                    amount,
-                    add
-                ),
-                expected
-            );
+        amount = bound(amount, 0, FullMath.mulDiv96(type(uint160).max, liquidity));
+        try ogWrapper.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add) returns (
+            uint160 expected
+        ) {
+            assertEq(wrapper.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getNextSqrtPriceFromAmount1RoundingDown(
-                sqrtPX96,
-                liquidity,
-                amount,
-                add
-            );
+            wrapper.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add);
         }
     }
 
@@ -216,31 +130,11 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amountIn,
         bool zeroForOne
     ) external {
-        try
-            ogWrapper.getNextSqrtPriceFromInput(
-                sqrtPX96,
-                liquidity,
-                amountIn,
-                zeroForOne
-            )
-        returns (uint160 expected) {
-            assertEq(
-                wrapper.getNextSqrtPriceFromInput(
-                    sqrtPX96,
-                    liquidity,
-                    amountIn,
-                    zeroForOne
-                ),
-                expected
-            );
+        try ogWrapper.getNextSqrtPriceFromInput(sqrtPX96, liquidity, amountIn, zeroForOne) returns (uint160 expected) {
+            assertEq(wrapper.getNextSqrtPriceFromInput(sqrtPX96, liquidity, amountIn, zeroForOne), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getNextSqrtPriceFromInput(
-                sqrtPX96,
-                liquidity,
-                amountIn,
-                zeroForOne
-            );
+            wrapper.getNextSqrtPriceFromInput(sqrtPX96, liquidity, amountIn, zeroForOne);
         }
     }
 
@@ -276,31 +170,13 @@ contract SqrtPriceMathTest is BaseTest {
         uint256 amountOut,
         bool zeroForOne
     ) external {
-        try
-            ogWrapper.getNextSqrtPriceFromOutput(
-                sqrtPX96,
-                liquidity,
-                amountOut,
-                zeroForOne
-            )
-        returns (uint160 expected) {
-            assertEq(
-                wrapper.getNextSqrtPriceFromOutput(
-                    sqrtPX96,
-                    liquidity,
-                    amountOut,
-                    zeroForOne
-                ),
-                expected
-            );
+        try ogWrapper.getNextSqrtPriceFromOutput(sqrtPX96, liquidity, amountOut, zeroForOne) returns (
+            uint160 expected
+        ) {
+            assertEq(wrapper.getNextSqrtPriceFromOutput(sqrtPX96, liquidity, amountOut, zeroForOne), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getNextSqrtPriceFromOutput(
-                sqrtPX96,
-                liquidity,
-                amountOut,
-                zeroForOne
-            );
+            wrapper.getNextSqrtPriceFromOutput(sqrtPX96, liquidity, amountOut, zeroForOne);
         }
     }
 
@@ -336,31 +212,11 @@ contract SqrtPriceMathTest is BaseTest {
         uint128 liquidity,
         bool roundUp
     ) external {
-        try
-            ogWrapper.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            )
-        returns (uint256 expected) {
-            assertEq(
-                wrapper.getAmount0Delta(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    liquidity,
-                    roundUp
-                ),
-                expected
-            );
+        try ogWrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp) returns (uint256 expected) {
+            assertEq(wrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getAmount0Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+            wrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
         }
     }
 
@@ -370,50 +226,17 @@ contract SqrtPriceMathTest is BaseTest {
         uint128 liquidity,
         bool roundUp
     ) external {
-        try
-            ogWrapper.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            )
-        returns (uint256 expected) {
-            assertEq(
-                wrapper.getAmount1Delta(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    liquidity,
-                    roundUp
-                ),
-                expected
-            );
+        try ogWrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp) returns (uint256 expected) {
+            assertEq(wrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp), expected);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.getAmount1Delta(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity,
-                roundUp
-            );
+            wrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity, roundUp);
         }
     }
 
-    function testFuzz_GetAmount0Delta(
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96,
-        int128 liquidity
-    ) external {
-        try
-            ogWrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity)
-        returns (int256 expected) {
-            assertEq(
-                wrapper.getAmount0Delta(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    liquidity
-                ),
-                expected
-            );
+    function testFuzz_GetAmount0Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, int128 liquidity) external {
+        try ogWrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity) returns (int256 expected) {
+            assertEq(wrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity), expected);
         } catch (bytes memory) {
             vm.expectRevert();
             wrapper.getAmount0Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
@@ -423,11 +246,7 @@ contract SqrtPriceMathTest is BaseTest {
     function testGas_GetAmount0Delta() external view {
         for (uint256 i; i < 100; ++i) {
             try
-                wrapper.getAmount0Delta(
-                    pseudoRandomUint160(i),
-                    pseudoRandomUint160(i ** 2),
-                    pseudoRandomInt128(i ** 3)
-                )
+                wrapper.getAmount0Delta(pseudoRandomUint160(i), pseudoRandomUint160(i ** 2), pseudoRandomInt128(i ** 3))
             {} catch {}
         }
     }
@@ -444,22 +263,9 @@ contract SqrtPriceMathTest is BaseTest {
         }
     }
 
-    function testFuzz_GetAmount1Delta(
-        uint160 sqrtRatioAX96,
-        uint160 sqrtRatioBX96,
-        int128 liquidity
-    ) external {
-        try
-            ogWrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity)
-        returns (int256 expected) {
-            assertEq(
-                wrapper.getAmount1Delta(
-                    sqrtRatioAX96,
-                    sqrtRatioBX96,
-                    liquidity
-                ),
-                expected
-            );
+    function testFuzz_GetAmount1Delta(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, int128 liquidity) external {
+        try ogWrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity) returns (int256 expected) {
+            assertEq(wrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity), expected);
         } catch (bytes memory) {
             vm.expectRevert();
             wrapper.getAmount1Delta(sqrtRatioAX96, sqrtRatioBX96, liquidity);
@@ -469,11 +275,7 @@ contract SqrtPriceMathTest is BaseTest {
     function testGas_GetAmount1Delta() external view {
         for (uint256 i; i < 100; ++i) {
             try
-                wrapper.getAmount1Delta(
-                    pseudoRandomUint160(i),
-                    pseudoRandomUint160(i ** 2),
-                    pseudoRandomInt128(i ** 3)
-                )
+                wrapper.getAmount1Delta(pseudoRandomUint160(i), pseudoRandomUint160(i ** 2), pseudoRandomInt128(i ** 3))
             {} catch {}
         }
     }
