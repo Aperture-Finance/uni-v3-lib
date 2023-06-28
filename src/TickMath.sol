@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "./BitMath.sol";
+import "./TernaryLib.sol";
 
 /// @title Math library for computing sqrt prices from ticks and vice versa
 /// @author Aperture Finance
@@ -19,6 +19,9 @@ library TickMath {
     /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
     uint160 internal constant MAX_SQRT_RATIO =
         1461446703485210103287273052203988822378723970342;
+    /// @dev A threshold used for optimized bounds check, equals `MAX_SQRT_RATIO - MIN_SQRT_RATIO - 1`
+    uint160 internal constant MAX_SQRT_RATIO_MINUS_MIN_SQRT_RATIO_MINUS_ONE =
+        1461446703485210103287273052203988822378723970342 - 4295128739 - 1;
 
     /// @notice Calculates sqrt(1.0001^tick) * 2^96
     /// @dev Throws if |tick| > max tick
@@ -29,16 +32,14 @@ library TickMath {
         int24 tick
     ) internal pure returns (uint160 sqrtPriceX96) {
         unchecked {
-            uint256 absTick;
+            int256 tick256;
+            assembly {
+                // sign extend to make tick an int256 in twos complement
+                tick256 := signextend(2, tick)
+            }
+            uint256 absTick = TernaryLib.abs(tick256);
             /// @solidity memory-safe-assembly
             assembly {
-                // Credit to Solady (https://github.com/Vectorized/solady/blob/1873046d2ed3428e236d83682f302afde369b2c2/src/utils/FixedPointMathLib.sol#L620)
-                // mask = 0 if tick >= 0 else -1
-                // If tick >= 0, |tick| = tick = 0 ^ tick
-                // If tick < 0, |tick| = ~(-|tick| - 1) = ~(tick - 1) = -1 ^ (tick - 1)
-                tick := signextend(2, tick)
-                let mask := sub(0, slt(tick, 0))
-                absTick := xor(mask, add(mask, tick))
                 // Equivalent: if (absTick > MAX_TICK) revert("T");
                 if gt(absTick, MAX_TICK) {
                     // selector "Error(string)", [0x1c, 0x20)
@@ -59,20 +60,22 @@ library TickMath {
                     shr(
                         // 128 if absTick & 0x1 else 0
                         shl(7, and(absTick, 0x1)),
-                        // 2**256 / sqrt(1.0001) where the 128th bit is 1
+                        // upper 128 bits of 2**256 / sqrt(1.0001) where the 128th bit is 1
                         0xfffcb933bd6fad37aa2d162d1a59400100000000000000000000000000000000
                     ),
-                    0x1ffffffffffffffffffffffffffffffff // Keep lower 129 bits
+                    0x1ffffffffffffffffffffffffffffffff // mask lower 129 bits
                 )
             }
+            // Iterate through 1th to 19th bit of absTick because MAX_TICK < 2**20
+            // Equivalent to:
+            //      for i in range(1, 20):
+            //          if absTick & 2 ** i:
+            //              ratio = ratio * (2 ** 128 / 1.0001 ** (2 ** (i - 1))) / 2 ** 128
             if (absTick & 0x2 != 0)
-                // ratio /= 1.0001
                 ratio = (ratio * 0xfff97272373d413259a46990580e213a) >> 128;
             if (absTick & 0x4 != 0)
-                // ratio /= 1.0001**2
                 ratio = (ratio * 0xfff2e50f5f656932ef12357cf3c7fdcc) >> 128;
             if (absTick & 0x8 != 0)
-                // ratio /= 1.0001**4
                 ratio = (ratio * 0xffe5caca7e10e4e61c3624eaa0941cd0) >> 128;
             if (absTick & 0x10 != 0)
                 ratio = (ratio * 0xffcb9843d60f6159c9db58835c926644) >> 128;
@@ -104,14 +107,12 @@ library TickMath {
                 ratio = (ratio * 0x5d6af8dedb81196699c329225ee604) >> 128;
             if (absTick & 0x40000 != 0)
                 ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) >> 128;
-            // absTick & 2**19 == 1
             if (absTick & 0x80000 != 0)
-                // ratio /= 1.0001**(2**18)
                 ratio = (ratio * 0x48a170391f7dc42444e8fa2) >> 128;
 
             // if (tick > 0) ratio = type(uint256).max / ratio;
             assembly {
-                if sgt(tick, 0) {
+                if sgt(tick256, 0) {
                     ratio := div(not(0), ratio)
                 }
             }
@@ -134,12 +135,14 @@ library TickMath {
         uint160 sqrtPriceX96
     ) internal pure returns (int24 tick) {
         // Equivalent: if (sqrtPriceX96 < MIN_SQRT_RATIO || sqrtPriceX96 >= MAX_SQRT_RATIO) revert("R");
+        // second inequality must be >= because the price can never reach the price at the max tick
         /// @solidity memory-safe-assembly
         assembly {
-            // second inequality must be >= because the price can never reach the price at the max tick
-            if or(
-                lt(sqrtPriceX96, MIN_SQRT_RATIO),
-                iszero(lt(sqrtPriceX96, MAX_SQRT_RATIO))
+            // if sqrtPriceX96 < MIN_SQRT_RATIO, the `sub` underflows and `gt` is true
+            // if sqrtPriceX96 >= MAX_SQRT_RATIO, sqrtPriceX96 - MIN_SQRT_RATIO > MAX_SQRT_RATIO - MAX_SQRT_RATIO - 1
+            if gt(
+                sub(sqrtPriceX96, MIN_SQRT_RATIO),
+                MAX_SQRT_RATIO_MINUS_MIN_SQRT_RATIO_MINUS_ONE
             ) {
                 // selector "Error(string)", [0x1c, 0x20)
                 mstore(0, 0x08c379a0)
@@ -153,92 +156,128 @@ library TickMath {
         }
 
         // Find the most significant bit of `sqrtPriceX96`, 160 > msb >= 32.
-        uint8 msb = BitMath.mostSignificantBit(sqrtPriceX96);
-
-        // Fit `sqrtPriceX96` in 128 bits
-        // ratio = sqrtPriceX96 / 2**(msb - 127)
-        // 2**128 > ratio >= 2**127
-        // sqrtPrice = 2**(msb - 96) * ratio / 2**127
-        uint256 ratio;
+        uint8 msb;
         assembly {
-            // Shift left first because 160 > msb >= 32. If we shift right first, we'll lose precision.
-            ratio := shr(sub(msb, 31), shl(96, sqrtPriceX96))
+            let x := sqrtPriceX96
+            msb := shl(7, lt(0xffffffffffffffffffffffffffffffff, x))
+            msb := or(msb, shl(6, lt(0xffffffffffffffff, shr(msb, x))))
+            msb := or(msb, shl(5, lt(0xffffffff, shr(msb, x))))
+
+            // For the remaining 32 bits, use a De Bruijn lookup.
+            x := shr(msb, x)
+            x := or(x, shr(1, x))
+            x := or(x, shr(2, x))
+            x := or(x, shr(4, x))
+            x := or(x, shr(8, x))
+            x := or(x, shr(16, x))
+
+            msb := or(
+                msb,
+                byte(
+                    shr(251, mul(x, shl(224, 0x07c4acdd))),
+                    0x0009010a0d15021d0b0e10121619031e080c141c0f111807131b17061a05041f
+                )
+            )
         }
 
         // 2**(msb - 95) > sqrtPrice >= 2**(msb - 96)
-        // log_2 = int(log_2(sqrtPrice)) = msb - 96
-        // log_2X64 = (msb - 96) * 2**64
-        int256 log_2X64; // 8.64 number
+        // the integer part of log_2(sqrtPrice) * 2**64 = (msb - 96) << 64, 8.64 number
+        int256 log_2X64;
         assembly {
             log_2X64 := shl(64, sub(msb, 96))
-        }
 
-        // Approximate `log_2X64` to 14 binary digits after decimal
-        // log_2X64 = (msb - 96) * 2**64 + f_0 * 2**63 + f_1 * 2**62 + ......
-        // sqrtPrice**2 = 2**(2 * (msb - 96)) * (r / 2**127)**2 = 2**(2 * log_2X64 / 2**64) = 2**(2 * (msb - 96) + f_0)
-        // 2**f_0 = (r / 2**127)**2 = r**2 / 2**255 * 2
-        // f_0 = 1 if (r**2 >= 2**255) else 0
-        // sqrtPrice**2 = 2**(2 * (msb - 96) + f_0) * r**2 / 2**(254 + f_0) = 2**(2 * (msb - 96) + f_0) * r' / 2**127
-        // r' = r**2 / 2**(127 + f_0)
-        // sqrtPrice**4 = 2**(4 * (msb - 96) + 2 * f_0) * (r' / 2**127)**2
-        //     = 2**(4 * log_2X64 / 2**64) = 2**(4 * (msb - 96) + 2 * f_0 + f_1)
-        // 2**(f_1) = (r' / 2**127)**2
-        // f_1 = 1 if (r'**2 >= 2**255) else 0
-        assembly {
+            // Get the first 128 significant figures of `sqrtPriceX96`.
+            // r = sqrtPriceX96 / 2**(msb - 127), where 2**128 > r >= 2**127
+            // sqrtPrice = 2**(msb - 96) * r / 2**127, in floating point math
+            // Shift left first because 160 > msb >= 32. If we shift right first, we'll lose precision.
+            let r := shr(sub(msb, 31), shl(96, sqrtPriceX96))
+
+            // Approximate `log_2X64` to 14 binary digits after decimal
+            // log_2X64 = (msb - 96) * 2**64 + f_0 * 2**63 + f_1 * 2**62 + ......
+            // sqrtPrice**2 = 2**(2 * (msb - 96)) * (r / 2**127)**2 = 2**(2 * log_2X64 / 2**64) = 2**(2 * (msb - 96) + f_0)
+            // 2**f_0 = (r / 2**127)**2 = r**2 / 2**255 * 2
+            // f_0 = 1 if (r**2 >= 2**255) else 0
+            // sqrtPrice**2 = 2**(2 * (msb - 96) + f_0) * r**2 / 2**(254 + f_0) = 2**(2 * (msb - 96) + f_0) * r' / 2**127
+            // r' = r**2 / 2**(127 + f_0)
+            // sqrtPrice**4 = 2**(4 * (msb - 96) + 2 * f_0) * (r' / 2**127)**2
+            //     = 2**(4 * log_2X64 / 2**64) = 2**(4 * (msb - 96) + 2 * f_0 + f_1)
+            // 2**(f_1) = (r' / 2**127)**2
+            // f_1 = 1 if (r'**2 >= 2**255) else 0
+
             // Check whether r >= sqrt(2) * 2**127
-            function ge_sqrt2(r) -> _r, f {
-                // 2**256 > r**2 >= 2**254
-                let r2 := mul(r, r)
-                // f = (r**2 >= 2**255)
-                f := slt(r2, 0)
-                // _r = r**2 >> 128 if r**2 >= 2**255 else r**2 >> 127
-                _r := shr(add(127, f), r2)
-            }
-            let r, f := ge_sqrt2(ratio)
-            log_2X64 := or(log_2X64, shl(63, f))
+            // 2**256 > r**2 >= 2**254
+            let square := mul(r, r)
+            // f = (r**2 >= 2**255)
+            let f := slt(square, 0)
+            // r = r**2 >> 128 if r**2 >= 2**255 else r**2 >> 127
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(63, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(62, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(62, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(61, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(61, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(60, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(60, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(59, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(59, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(58, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(58, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(57, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(57, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(56, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(56, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(55, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(55, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(54, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(54, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(53, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(53, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(52, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(52, f), log_2X64)
 
-            r, f := ge_sqrt2(r)
-            log_2X64 := or(log_2X64, shl(51, f))
+            square := mul(r, r)
+            f := slt(square, 0)
+            r := shr(add(127, f), square)
+            log_2X64 := or(shl(51, f), log_2X64)
 
-            log_2X64 := or(log_2X64, shl(50, slt(mul(r, r), 0)))
+            log_2X64 := or(shl(50, slt(mul(r, r), 0)), log_2X64)
         }
 
         // sqrtPrice = sqrt(1.0001^tick)
-        // log_2(sqrtPrice) = tick * log_2(sqrt(1.0001))
-        // tick = log_sqrt10001(sqrtPrice) = log_2(sqrtPrice) / log_2(sqrt(1.0001))
+        // tick = log_{sqrt(1.0001)}(sqrtPrice) = log_2(sqrtPrice) / log_2(sqrt(1.0001))
         // 2**64 / log_2(sqrt(1.0001)) = 255738958999603826347141
         int24 tickLow;
         int24 tickHi;
@@ -254,10 +293,14 @@ library TickMath {
             )
         }
 
-        tick = tickLow == tickHi
-            ? tickLow
-            : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96
-            ? tickHi
-            : tickLow;
+        // Equivalent: tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
+        if (tickLow == tickHi) {
+            tick = tickHi;
+        } else {
+            uint160 sqrtRatioAtTickHi = getSqrtRatioAtTick(tickHi);
+            assembly {
+                tick := sub(tickHi, gt(sqrtRatioAtTickHi, sqrtPriceX96))
+            }
+        }
     }
 }

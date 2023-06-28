@@ -4,10 +4,10 @@
 [![Test](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml/badge.svg)](https://github.com/Aperture-Finance/uni-v3-lib/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/@aperture_finance/uni-v3-lib/latest.svg)](https://www.npmjs.com/package/@aperture_finance/uni-v3-lib/v/latest)
 
-The `uni-v3-lib` by Aperture Finance is a suite of Solidity libraries that have been imported and rewritten from
-Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
-repositories. The goal of this project is to provide external integrators with a set of libraries that are crucial for
-interaction with the Uniswap V3 protocol.
+The `uni-v3-lib` by Aperture Finance consists of a suite of Solidity libraries that have been imported and rewritten
+from Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
+repositories. This project aims to equip external integrators with a set of libraries crucial for interaction with the
+Uniswap V3 protocol.
 
 ## Overview
 
@@ -29,12 +29,12 @@ heuristics and techniques are documented by extensive annotations in the source 
 | SqrtPriceMath | testGas_GetAmount0Delta    | 285432   | 266947    | 6.47%          |
 | SqrtPriceMath | testGas_GetAmount1Delta    | 273563   | 219187    | 19.88%         |
 | SwapMath      | testGas_ComputeSwapStep    | 531437   | 430173    | 19.03%         |
-| TickMath      | testGas_GetSqrtRatioAtTick | 168533   | 147560    | 12.45%         |
-| TickMath      | testGas_GetTickAtSqrtRatio | 307781   | 260917    | 15.24%         |
+| TickMath      | testGas_GetSqrtRatioAtTick | 168533   | 148160    | 12.09%         |
+| TickMath      | testGas_GetTickAtSqrtRatio | 307781   | 255519    | 16.98%         |
 
-The gas measured is the total gas used by the test transaction, including the gas used to call the test wrapper
+*The gas measured is the total gas used by the test transaction, including the gas used to call the test wrapper
 contract. The actual percentage difference in gas for the internal library functions is higher than the numbers shown
-above.
+above.*
 
 ## Libraries
 

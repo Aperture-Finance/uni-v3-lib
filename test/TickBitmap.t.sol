@@ -40,6 +40,18 @@ contract TickBitmapTest is BaseTest {
         makeOriginalLibrary(address(ogWrapper), "TickBitmapTest");
     }
 
+    function testFuzz_Position(int24 tick) public {
+        int16 wordPos;
+        uint8 bitPos;
+        assembly {
+            // signed arithmetic shift right
+            wordPos := sar(8, tick)
+            bitPos := and(tick, 255)
+        }
+        assertEq(int256(wordPos), tick >> 8);
+        assertEq(bitPos, uint8(int8(tick % 256)));
+    }
+
     function testFuzz_Compress(int24 tick, int24 _tickSpacing) public {
         _tickSpacing = int24(bound(_tickSpacing, 1, 200));
         int24 compressed = tick / _tickSpacing;

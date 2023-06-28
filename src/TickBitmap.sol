@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BUSL-1.1
+// SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.8;
 
 import "./BitMath.sol";
@@ -10,7 +10,23 @@ import "./PoolCaller.sol";
 /// @notice Stores a packed mapping of tick index to its initialized state
 /// @dev The mapping uses int16 for keys since ticks are represented as int24 and there are 256 (2^8) values per word.
 library TickBitmap {
-    /// @notice Computes the position in the mapping where the initialized bit for a tick lives
+    /// @dev round towards negative infinity
+    function compress(
+        int24 tick,
+        int24 tickSpacing
+    ) internal pure returns (int24 compressed) {
+        // compressed = tick / tickSpacing;
+        // if (tick < 0 && tick % tickSpacing != 0) compressed--;
+        assembly {
+            compressed := sub(
+                sdiv(tick, tickSpacing),
+                // if (tick < 0 && tick % tickSpacing != 0) then tick % tickSpacing < 0, vice versa
+                slt(smod(tick, tickSpacing), 0)
+            )
+        }
+    }
+
+    /// @notice Computes the word position and the bit position given a tick.
     /// @param tick The tick for which to compute the position
     /// @return wordPos The key in the mapping containing the word in which the bit is stored
     /// @return bitPos The bit position in the word where the flag is stored
@@ -24,22 +40,6 @@ library TickBitmap {
         }
     }
 
-    /// @dev round towards negative infinity
-    function compress(
-        int24 tick,
-        int24 tickSpacing
-    ) internal pure returns (int24 compressed) {
-        // compressed = tick / tickSpacing;
-        // if (tick < 0 && tick % tickSpacing != 0) compressed--;
-        assembly {
-            compressed := sub(
-                sdiv(tick, tickSpacing),
-                // If (tick < 0 && tick % tickSpacing != 0) then tick % tickSpacing < 0, vice versa
-                slt(smod(tick, tickSpacing), 0)
-            )
-        }
-    }
-
     /// @notice Flips the initialized state for a given tick from false to true, or vice versa
     /// @param self The mapping in which to flip the tick
     /// @param tick The tick to flip
@@ -50,14 +50,18 @@ library TickBitmap {
         int24 tickSpacing
     ) internal {
         assembly ("memory-safe") {
+            // ensure that the tick is spaced
             if smod(tick, tickSpacing) {
                 revert(0, 0)
             }
             tick := sdiv(tick, tickSpacing)
             // calculate the storage slot corresponding to the tick
+            // wordPos = tick >> 8
             mstore(0, sar(8, tick))
             mstore(0x20, self.slot)
+            // the slot of self[wordPos] is keccak256(abi.encode(wordPos, self.slot))
             let slot := keccak256(0, 0x40)
+            // mask = 1 << bitPos = 1 << (tick % 256)
             // self[wordPos] ^= mask
             sstore(slot, xor(sload(slot), shl(and(tick, 255), 1)))
         }
@@ -91,7 +95,7 @@ library TickBitmap {
                 mstore(0x20, self.slot)
                 let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(sload(keccak256(0, 0x40)), mask)
-                initialized := iszero(iszero(masked))
+                initialized := gt(masked, 0)
             }
 
             // if there are no initialized ticks to the right of or at the current tick, return rightmost in the word
@@ -120,7 +124,7 @@ library TickBitmap {
                 mstore(0x20, self.slot)
                 let mask := not(sub(shl(bitPos, 1), 1))
                 masked := and(sload(keccak256(0, 0x40)), mask)
-                initialized := iszero(iszero(masked))
+                initialized := gt(masked, 0)
             }
 
             // if there are no initialized ticks to the left of the current tick, return leftmost in the word
@@ -178,7 +182,7 @@ library TickBitmap {
             assembly {
                 let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(tickWord, mask)
-                initialized := iszero(iszero(masked))
+                initialized := gt(masked, 0)
             }
 
             // if there are no initialized ticks to the right of or at the current tick, return rightmost in the word
@@ -207,7 +211,7 @@ library TickBitmap {
             assembly {
                 let mask := not(sub(shl(bitPos, 1), 1))
                 masked := and(tickWord, mask)
-                initialized := iszero(iszero(masked))
+                initialized := gt(masked, 0)
             }
 
             // if there are no initialized ticks to the left of the current tick, return leftmost in the word

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later
+// SPDX-License-Identifier: GPL-2.0-or-later
 // User defined value types are introduced in Solidity v0.8.8.
 // https://blog.soliditylang.org/2021/09/27/user-defined-value-types/
 pragma solidity >=0.8.8;

@@ -15,11 +15,15 @@ library BitMath {
     /// @return r the index of the most significant bit
     function mostSignificantBit(uint256 x) internal pure returns (uint8 r) {
         assembly {
+            // r = x >= 2**128 ? 128 : 0
             r := shl(7, lt(0xffffffffffffffffffffffffffffffff, x))
+            // r += (x >> r) >= 2**64 ? 64 : 0
             r := or(r, shl(6, lt(0xffffffffffffffff, shr(r, x))))
+            // r += (x >> r) >= 2**32 ? 32 : 0
             r := or(r, shl(5, lt(0xffffffff, shr(r, x))))
 
             // For the remaining 32 bits, use a De Bruijn lookup.
+            // https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogDeBruijn
             x := shr(r, x)
             x := or(x, shr(1, x))
             x := or(x, shr(2, x))
@@ -46,14 +50,18 @@ library BitMath {
     /// @return r the index of the least significant bit
     function leastSignificantBit(uint256 x) internal pure returns (uint8 r) {
         assembly {
-            // Isolate the least significant bit.
-            x := and(x, add(not(x), 1))
+            // Isolate the least significant bit, x = x & -x = x & (~x + 1)
+            x := and(x, sub(0, x))
 
+            // r = x >= 2**128 ? 128 : 0
             r := shl(7, lt(0xffffffffffffffffffffffffffffffff, x))
+            // r += (x >> r) >= 2**64 ? 64 : 0
             r := or(r, shl(6, lt(0xffffffffffffffff, shr(r, x))))
+            // r += (x >> r) >= 2**32 ? 32 : 0
             r := or(r, shl(5, lt(0xffffffff, shr(r, x))))
 
             // For the remaining 32 bits, use a De Bruijn lookup.
+            // https://graphics.stanford.edu/~seander/bithacks.html#ZerosOnRightMultLookup
             r := or(
                 r,
                 byte(
