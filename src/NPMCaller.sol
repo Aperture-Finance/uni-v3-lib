@@ -55,10 +55,7 @@ library NPMCaller {
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param owner An address for whom to query the balance
     /// @return amount The number of NFTs owned by `owner`, possibly zero
-    function balanceOf(
-        INPM npm,
-        address owner
-    ) internal view returns (uint256 amount) {
+    function balanceOf(INPM npm, address owner) internal view returns (uint256 amount) {
         bytes4 selector = IERC721.balanceOf.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -94,10 +91,7 @@ library NPMCaller {
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The identifier for an NFT
     /// @return owner The address of the owner of the NFT
-    function ownerOf(
-        INPM npm,
-        uint256 tokenId
-    ) internal view returns (address owner) {
+    function ownerOf(INPM npm, uint256 tokenId) internal view returns (address owner) {
         bytes4 selector = IERC721.ownerOf.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -119,10 +113,7 @@ library NPMCaller {
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The NFT to find the approved address for
     /// @return operator The approved address for this NFT, or the zero address if there is none
-    function getApproved(
-        INPM npm,
-        uint256 tokenId
-    ) internal view returns (address operator) {
+    function getApproved(INPM npm, uint256 tokenId) internal view returns (address operator) {
         bytes4 selector = IERC721.getApproved.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -169,11 +160,7 @@ library NPMCaller {
     /// @param owner The address that owns the NFTs
     /// @param operator The address that acts on behalf of the owner
     /// @return isApproved True if `operator` is an approved operator for `owner`, false otherwise
-    function isApprovedForAll(
-        INPM npm,
-        address owner,
-        address operator
-    ) internal view returns (bool isApproved) {
+    function isApprovedForAll(INPM npm, address owner, address operator) internal view returns (bool isApproved) {
         bytes4 selector = IERC721.isApprovedForAll.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -183,9 +170,7 @@ library NPMCaller {
             // We use 68 because of the length of our calldata.
             // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
             // `isApprovedForAll` should never revert according to the ERC721 standard.
-            isApproved := mload(
-                iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20))
-            )
+            isApproved := mload(iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20)))
             // Clear first 4 bytes of the free memory pointer.
             mstore(0x24, 0)
         }
@@ -197,11 +182,7 @@ library NPMCaller {
     /// multiple operators per owner.
     /// @param operator Address to add to the set of authorized operators
     /// @param approved True if the operator is approved, false to revoke approval
-    function setApprovalForAll(
-        INPM npm,
-        address operator,
-        bool approved
-    ) internal {
+    function setApprovalForAll(INPM npm, address operator, bool approved) internal {
         bytes4 selector = IERC721.setApprovalForAll.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -222,10 +203,7 @@ library NPMCaller {
     /// @dev Equivalent to `INonfungiblePositionManager.positions(tokenId)`
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The ID of the token that represents the position
-    function positionsFull(
-        INPM npm,
-        uint256 tokenId
-    ) internal view returns (PositionFull memory pos) {
+    function positionsFull(INPM npm, uint256 tokenId) internal view returns (PositionFull memory pos) {
         bytes4 selector = INPM.positions.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -243,10 +221,7 @@ library NPMCaller {
     /// @dev Equivalent to `INonfungiblePositionManager.positions(tokenId)`
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The ID of the token that represents the position
-    function positions(
-        INPM npm,
-        uint256 tokenId
-    ) internal view returns (Position memory pos) {
+    function positions(INPM npm, uint256 tokenId) internal view returns (Position memory pos) {
         bytes4 selector = INPM.positions.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -271,15 +246,7 @@ library NPMCaller {
     function mint(
         INPM npm,
         INPM.MintParams memory params
-    )
-        internal
-        returns (
-            uint256 tokenId,
-            uint128 liquidity,
-            uint256 amount0,
-            uint256 amount1
-        )
-    {
+    ) internal returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) {
         uint32 selector = uint32(INPM.mint.selector);
         assembly ("memory-safe") {
             // Cache the free memory pointer.
@@ -393,11 +360,7 @@ library NPMCaller {
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The token ID of the position to collect fees for
     /// @param recipient The address that receives the fees
-    function collect(
-        INPM npm,
-        uint256 tokenId,
-        address recipient
-    ) internal returns (uint256 amount0, uint256 amount1) {
+    function collect(INPM npm, uint256 tokenId, address recipient) internal returns (uint256 amount0, uint256 amount1) {
         bytes4 selector = INPM.collect.selector;
         assembly ("memory-safe") {
             // Get a pointer to some free memory.

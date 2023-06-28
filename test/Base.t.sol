@@ -12,8 +12,7 @@ import {TickMath} from "src/TickMath.sol";
 
 /// @dev Base test class for all tests.
 abstract contract BaseTest is Test {
-    IUniswapV3Factory internal constant factory =
-        IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
+    IUniswapV3Factory internal constant factory = IUniswapV3Factory(0x1F98431c8aD98523631AE4a59f267346ea31F984);
     INonfungiblePositionManager internal constant npm =
         INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
     address internal constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
@@ -50,24 +49,13 @@ abstract contract BaseTest is Test {
 
     /// @dev Deploy a test wrapper with `name` to `lib` using `vm.etch`.
     function makeOriginalLibrary(address lib, string memory name) internal {
-        string memory file = string.concat(
-            vm.projectRoot(),
-            "/artifacts/src/test/",
-            name,
-            ".sol/",
-            name,
-            ".json"
-        );
-        bytes memory deployedBytecode = vm.parseJsonBytes(
-            vm.readFile(file),
-            ".deployedBytecode"
-        );
+        string memory file = string.concat(vm.projectRoot(), "/artifacts/src/test/", name, ".sol/", name, ".json");
+        bytes memory deployedBytecode = vm.parseJsonBytes(vm.readFile(file), ".deployedBytecode");
         vm.etch(lib, deployedBytecode);
     }
 
     function boundUint160(uint160 x) internal view returns (uint160) {
-        return
-            uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
+        return uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
     }
 
     function pseudoRandom(uint256 seed) internal pure returns (uint256) {

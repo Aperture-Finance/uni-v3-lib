@@ -36,10 +36,7 @@ contract NPMCallerWrapper {
         NPMCaller.approve(npm, spender, tokenId);
     }
 
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) external view returns (bool) {
+    function isApprovedForAll(address owner, address operator) external view returns (bool) {
         return NPMCaller.isApprovedForAll(npm, owner, operator);
     }
 
@@ -47,21 +44,15 @@ contract NPMCallerWrapper {
         NPMCaller.setApprovalForAll(npm, operator, approved);
     }
 
-    function positionsFull(
-        uint256 tokenId
-    ) external view returns (PositionFull memory) {
+    function positionsFull(uint256 tokenId) external view returns (PositionFull memory) {
         return NPMCaller.positionsFull(npm, tokenId);
     }
 
-    function positions(
-        uint256 tokenId
-    ) external view returns (Position memory) {
+    function positions(uint256 tokenId) external view returns (Position memory) {
         return NPMCaller.positions(npm, tokenId);
     }
 
-    function mint(
-        INPM.MintParams memory params
-    ) external returns (uint256, uint128, uint256, uint256) {
+    function mint(INPM.MintParams memory params) external returns (uint256, uint128, uint256, uint256) {
         uint256 amount0Desired = params.amount0Desired;
         uint256 amount1Desired = params.amount1Desired;
         if (amount0Desired != 0) {
@@ -96,9 +87,7 @@ contract NPMCallerWrapper {
         return NPMCaller.increaseLiquidity(npm, params);
     }
 
-    function decreaseLiquidity(
-        INPM.DecreaseLiquidityParams memory params
-    ) external returns (uint256, uint256) {
+    function decreaseLiquidity(INPM.DecreaseLiquidityParams memory params) external returns (uint256, uint256) {
         return NPMCaller.decreaseLiquidity(npm, params);
     }
 
@@ -106,21 +95,11 @@ contract NPMCallerWrapper {
         return NPMCaller.burn(npm, tokenId);
     }
 
-    function collect(
-        uint256 tokenId,
-        address recipient
-    ) external returns (uint256, uint256) {
+    function collect(uint256 tokenId, address recipient) external returns (uint256, uint256) {
         return NPMCaller.collect(npm, tokenId, recipient);
     }
 
-    function permit(
-        address spender,
-        uint256 tokenId,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
+    function permit(address spender, uint256 tokenId, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
         return NPMCaller.permit(npm, spender, tokenId, deadline, v, r, s);
     }
 }
@@ -145,24 +124,12 @@ contract NPMCallerTest is BaseTest {
     }
 
     /// @dev Returns the digest used in the permit signature verification
-    function permitDigest(
-        address spender,
-        uint256 tokenId,
-        uint256 deadline
-    ) internal view returns (bytes32) {
+    function permitDigest(address spender, uint256 tokenId, uint256 deadline) internal view returns (bytes32) {
         (uint96 nonce, , , , , , , , , , , ) = npm.positions(tokenId);
         return
             ECDSA.toTypedDataHash(
                 DOMAIN_SEPARATOR,
-                keccak256(
-                    abi.encode(
-                        PERMIT_TYPEHASH,
-                        spender,
-                        tokenId,
-                        nonce,
-                        deadline
-                    )
-                )
+                keccak256(abi.encode(PERMIT_TYPEHASH, spender, tokenId, nonce, deadline))
             );
     }
 
@@ -241,18 +208,10 @@ contract NPMCallerTest is BaseTest {
     function testFuzz_IsApprovedForAll(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.ownerOf(tokenId) returns (address owner) {
-            assertEq(
-                npmCaller.isApprovedForAll(owner, address(this)),
-                false,
-                "is approved"
-            );
+            assertEq(npmCaller.isApprovedForAll(owner, address(this)), false, "is approved");
             vm.prank(owner);
             npm.setApprovalForAll(address(this), true);
-            assertEq(
-                npmCaller.isApprovedForAll(owner, address(this)),
-                true,
-                "not approved"
-            );
+            assertEq(npmCaller.isApprovedForAll(owner, address(this)), true, "not approved");
         } catch Error(string memory reason) {
             assertEq(reason, "ERC721: owner query for nonexistent token");
         }
@@ -261,11 +220,7 @@ contract NPMCallerTest is BaseTest {
     function test_SetApprovalForAll() public {
         NPMCallerWrapper _npmCaller = npmCaller;
         _npmCaller.setApprovalForAll(address(this), true);
-        assertEq(
-            npm.isApprovedForAll(address(_npmCaller), address(this)),
-            true,
-            "setApprovalForAll"
-        );
+        assertEq(npm.isApprovedForAll(address(_npmCaller), address(this)), true, "setApprovalForAll");
     }
 
     /// forge-config: default.fuzz.runs = 256
@@ -273,20 +228,8 @@ contract NPMCallerTest is BaseTest {
     function testFuzz_PositionsFull(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positionsFull(tokenId) returns (PositionFull memory pos) {
-            (
-                uint96 nonce,
-                ,
-                address token0,
-                ,
-                ,
-                int24 tickLower,
-                ,
-                uint128 liquidity,
-                ,
-                ,
-                ,
-                uint128 tokensOwed1
-            ) = npm.positions(tokenId);
+            (uint96 nonce, , address token0, , , int24 tickLower, , uint128 liquidity, , , , uint128 tokensOwed1) = npm
+                .positions(tokenId);
             assertEq(nonce, pos.nonce, "nonce");
             assertEq(token0, pos.token0, "token0");
             assertEq(tickLower, pos.tickLower, "tickLower");
@@ -411,11 +354,7 @@ contract NPMCallerTest is BaseTest {
         NPMCallerWrapper _npmCaller = npmCaller;
         assertEq(npm.getApproved(tokenId), address(0), "approved");
         uint256 deadline = block.timestamp;
-        (uint8 v, bytes32 r, bytes32 s) = permitSig(
-            address(_npmCaller),
-            tokenId,
-            deadline
-        );
+        (uint8 v, bytes32 r, bytes32 s) = permitSig(address(_npmCaller), tokenId, deadline);
         _npmCaller.permit(address(_npmCaller), tokenId, deadline, v, r, s);
         assertEq(npm.getApproved(tokenId), address(_npmCaller), "not approved");
     }

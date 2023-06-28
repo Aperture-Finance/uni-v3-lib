@@ -7,11 +7,7 @@ import "./interfaces/IFullMath.sol";
 
 /// @dev Expose internal functions to test the FullMath library.
 contract FullMathTest is IFullMath {
-    function mulDiv(
-        uint256 a,
-        uint256 b,
-        uint256 denominator
-    ) external pure override returns (uint256 result) {
+    function mulDiv(uint256 a, uint256 b, uint256 denominator) external pure override returns (uint256 result) {
         return FullMath.mulDiv(a, b, denominator);
     }
 

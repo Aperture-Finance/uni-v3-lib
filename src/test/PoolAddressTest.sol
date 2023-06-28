@@ -12,21 +12,14 @@ contract PoolAddressTest is IPoolAddress {
         address tokenB,
         uint24 fee
     ) external pure override returns (IPoolKey memory key) {
-        PoolAddress.PoolKey memory _key = PoolAddress.getPoolKey(
-            tokenA,
-            tokenB,
-            fee
-        );
+        PoolAddress.PoolKey memory _key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
         /// @solidity memory-safe-assembly
         assembly {
             key := _key
         }
     }
 
-    function computeAddress(
-        address factory,
-        IPoolKey memory key
-    ) external pure override returns (address pool) {
+    function computeAddress(address factory, IPoolKey memory key) external pure override returns (address pool) {
         PoolAddress.PoolKey memory _key;
         /// @solidity memory-safe-assembly
         assembly {

@@ -23,8 +23,7 @@ contract TickBitmapWrapper is ITickBitmap {
 
     // returns whether the given tick is initialized
     function isInitialized(int24 tick) external view returns (bool) {
-        (int24 next, bool initialized) = bitmap
-            .nextInitializedTickWithinOneWord(tick, 1, true);
+        (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);
         return next == tick ? initialized : false;
     }
 }
@@ -66,11 +65,7 @@ contract TickBitmapTest is BaseTest {
         assertEq(wrapper.isInitialized(tick), ogWrapper.isInitialized(tick));
     }
 
-    function testFuzz_NextInitializedTickWithinOneWord(
-        int24 tick,
-        uint8 nextBitPos,
-        bool lte
-    ) public {
+    function testFuzz_NextInitializedTickWithinOneWord(int24 tick, uint8 nextBitPos, bool lte) public {
         tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK));
         int24 compressed = lte ? tick : tick + 1;
         int16 wordPos = int16(compressed >> 8);
@@ -87,10 +82,8 @@ contract TickBitmapTest is BaseTest {
         }
         wrapper.flipTick(nextInitializedTick);
         ogWrapper.flipTick(nextInitializedTick);
-        (int24 next, bool initialized) = wrapper
-            .nextInitializedTickWithinOneWord(tick, lte);
-        (int24 ogNext, bool ogInitialized) = ogWrapper
-            .nextInitializedTickWithinOneWord(tick, lte);
+        (int24 next, bool initialized) = wrapper.nextInitializedTickWithinOneWord(tick, lte);
+        (int24 ogNext, bool ogInitialized) = ogWrapper.nextInitializedTickWithinOneWord(tick, lte);
         assertEq(next, nextInitializedTick);
         assertEq(next, ogNext);
         assertEq(initialized, ogInitialized);
@@ -108,10 +101,7 @@ contract TickBitmapTest is BaseTest {
         }
         tick = 128 << 8;
         while (tick > -128 << 8) {
-            (tick, initialized) = wrapper.nextInitializedTickWithinOneWord(
-                tick - 1,
-                true
-            );
+            (tick, initialized) = wrapper.nextInitializedTickWithinOneWord(tick - 1, true);
             if (tick % 256 != 0) {
                 assertTrue(initialized);
             }
@@ -130,10 +120,7 @@ contract TickBitmapTest is BaseTest {
         }
         tick = 128 << 8;
         while (tick > -128 << 8) {
-            (tick, initialized) = ogWrapper.nextInitializedTickWithinOneWord(
-                tick - 1,
-                true
-            );
+            (tick, initialized) = ogWrapper.nextInitializedTickWithinOneWord(tick - 1, true);
             if (tick % 256 != 0) {
                 assertTrue(initialized);
             }
@@ -148,15 +135,14 @@ contract TickBitmapTest is BaseTest {
         uint256 tickWord;
         unchecked {
             for (uint256 counter; counter < 256; ++counter) {
-                (tick, , wordPos, tickWord) = TickBitmap
-                    .nextInitializedTickWithinOneWord(
-                        V3PoolCallee.wrap(pool),
-                        tick - 1,
-                        tickSpacing,
-                        true,
-                        wordPos,
-                        tickWord
-                    );
+                (tick, , wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
+                    V3PoolCallee.wrap(pool),
+                    tick - 1,
+                    tickSpacing,
+                    true,
+                    wordPos,
+                    tickWord
+                );
             }
         }
     }
@@ -169,15 +155,14 @@ contract TickBitmapTest is BaseTest {
         uint256 tickWord;
         unchecked {
             for (uint256 counter; counter < 256; ++counter) {
-                (tick, , wordPos, tickWord) = TickBitmap
-                    .nextInitializedTickWithinOneWord(
-                        V3PoolCallee.wrap(pool),
-                        tick,
-                        tickSpacing,
-                        false,
-                        wordPos,
-                        tickWord
-                    );
+                (tick, , wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
+                    V3PoolCallee.wrap(pool),
+                    tick,
+                    tickSpacing,
+                    false,
+                    wordPos,
+                    tickWord
+                );
             }
         }
     }
@@ -190,15 +175,14 @@ contract TickBitmapTest is BaseTest {
         int16 wordPos = type(int16).min;
         uint256 tickWord;
         for (uint256 counter; counter < 256; ) {
-            (tick, initialized, wordPos, tickWord) = TickBitmap
-                .nextInitializedTickWithinOneWord(
-                    V3PoolCallee.wrap(pool),
-                    tick - 1,
-                    tickSpacing,
-                    true,
-                    wordPos,
-                    tickWord
-                );
+            (tick, initialized, wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
+                V3PoolCallee.wrap(pool),
+                tick - 1,
+                tickSpacing,
+                true,
+                wordPos,
+                tickWord
+            );
             if (initialized) ++counter;
             if (tick < TickMath.MIN_TICK) {
                 console2.log("MIN_TICK", tick);
@@ -229,15 +213,14 @@ contract TickBitmapTest is BaseTest {
         int16 wordPos = type(int16).min;
         uint256 tickWord;
         for (uint256 counter; counter < 256; ) {
-            (tick, initialized, wordPos, tickWord) = TickBitmap
-                .nextInitializedTickWithinOneWord(
-                    V3PoolCallee.wrap(pool),
-                    tick,
-                    tickSpacing,
-                    false,
-                    wordPos,
-                    tickWord
-                );
+            (tick, initialized, wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
+                V3PoolCallee.wrap(pool),
+                tick,
+                tickSpacing,
+                false,
+                wordPos,
+                tickWord
+            );
             if (initialized) ++counter;
             if (tick > TickMath.MAX_TICK) {
                 console2.log("MAX_TICK", tick);

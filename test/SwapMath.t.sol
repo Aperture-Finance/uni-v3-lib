@@ -13,14 +13,7 @@ contract SwapMathWrapper is ISwapMath {
         int256 amountRemaining,
         uint24 feePips
     ) external pure override returns (uint160, uint256, uint256, uint256) {
-        return
-            SwapMath.computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                amountRemaining,
-                feePips
-            );
+        return SwapMath.computeSwapStep(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, amountRemaining, feePips);
     }
 
     function computeSwapStepExactIn(
@@ -81,44 +74,17 @@ contract SwapMathTest is BaseTest {
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         feePips = uint24(bound(feePips, 0, SwapMath.MAX_FEE_PIPS));
         try
-            ogWrapper.computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                amountRemaining,
-                feePips
-            )
-        returns (
-            uint160 ogSqrtRatioNextX96,
-            uint256 ogAmountIn,
-            uint256 ogAmountOut,
-            uint256 ogFeeAmount
-        ) {
-            (
-                uint160 sqrtRatioNextX96,
-                uint256 amountIn,
-                uint256 amountOut,
-                uint256 feeAmount
-            ) = wrapper.computeSwapStep(
-                    sqrtRatioCurrentX96,
-                    sqrtRatioTargetX96,
-                    liquidity,
-                    amountRemaining,
-                    feePips
-                );
+            ogWrapper.computeSwapStep(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, amountRemaining, feePips)
+        returns (uint160 ogSqrtRatioNextX96, uint256 ogAmountIn, uint256 ogAmountOut, uint256 ogFeeAmount) {
+            (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut, uint256 feeAmount) = wrapper
+                .computeSwapStep(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, amountRemaining, feePips);
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96);
             // The fee amount invariant is forgone but the total amount in and out should be the same.
             assertEq(amountIn + feeAmount, ogAmountIn + ogFeeAmount);
             assertEq(amountOut, ogAmountOut);
         } catch (bytes memory) {
             vm.expectRevert();
-            wrapper.computeSwapStep(
-                sqrtRatioCurrentX96,
-                sqrtRatioTargetX96,
-                liquidity,
-                amountRemaining,
-                feePips
-            );
+            wrapper.computeSwapStep(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, amountRemaining, feePips);
         }
     }
 
@@ -166,22 +132,14 @@ contract SwapMathTest is BaseTest {
                 amountRemaining,
                 feePips
             )
-        returns (
-            uint160 ogSqrtRatioNextX96,
-            uint256 ogAmountIn,
-            uint256 ogAmountOut
-        ) {
-            (
-                uint160 sqrtRatioNextX96,
-                uint256 amountIn,
-                uint256 amountOut
-            ) = wrapper.computeSwapStepExactIn(
-                    sqrtRatioCurrentX96,
-                    sqrtRatioTargetX96,
-                    liquidity,
-                    amountRemaining,
-                    feePips
-                );
+        returns (uint160 ogSqrtRatioNextX96, uint256 ogAmountIn, uint256 ogAmountOut) {
+            (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut) = wrapper.computeSwapStepExactIn(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96, "sqrtRatioNextX96");
             assertEq(amountIn, ogAmountIn, "amountIn");
             assertEq(amountOut, ogAmountOut, "amountOut");
@@ -241,22 +199,14 @@ contract SwapMathTest is BaseTest {
                 amountRemaining,
                 feePips
             )
-        returns (
-            uint160 ogSqrtRatioNextX96,
-            uint256 ogAmountIn,
-            uint256 ogAmountOut
-        ) {
-            (
-                uint160 sqrtRatioNextX96,
-                uint256 amountIn,
-                uint256 amountOut
-            ) = wrapper.computeSwapStepExactOut(
-                    sqrtRatioCurrentX96,
-                    sqrtRatioTargetX96,
-                    liquidity,
-                    amountRemaining,
-                    feePips
-                );
+        returns (uint160 ogSqrtRatioNextX96, uint256 ogAmountIn, uint256 ogAmountOut) {
+            (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut) = wrapper.computeSwapStepExactOut(
+                sqrtRatioCurrentX96,
+                sqrtRatioTargetX96,
+                liquidity,
+                amountRemaining,
+                feePips
+            );
             assertEq(sqrtRatioNextX96, ogSqrtRatioNextX96, "sqrtRatioNextX96");
             assertEq(amountIn, ogAmountIn, "amountIn");
             assertEq(amountOut, ogAmountOut, "amountOut");

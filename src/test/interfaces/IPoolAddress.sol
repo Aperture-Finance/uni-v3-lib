@@ -9,14 +9,7 @@ interface IPoolAddress {
         uint24 fee;
     }
 
-    function getPoolKey(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) external pure returns (IPoolKey memory);
+    function getPoolKey(address tokenA, address tokenB, uint24 fee) external pure returns (IPoolKey memory);
 
-    function computeAddress(
-        address factory,
-        IPoolKey memory key
-    ) external pure returns (address pool);
+    function computeAddress(address factory, IPoolKey memory key) external pure returns (address pool);
 }

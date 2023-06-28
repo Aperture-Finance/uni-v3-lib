@@ -23,8 +23,7 @@ contract TickBitmapTest is ITickBitmap {
 
     // returns whether the given tick is initialized
     function isInitialized(int24 tick) external view override returns (bool) {
-        (int24 next, bool initialized) = bitmap
-            .nextInitializedTickWithinOneWord(tick, 1, true);
+        (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);
         return next == tick ? initialized : false;
     }
 }

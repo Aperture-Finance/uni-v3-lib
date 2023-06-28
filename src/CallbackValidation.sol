@@ -20,9 +20,7 @@ library CallbackValidation {
         address tokenB,
         uint24 fee
     ) internal view returns (IUniswapV3Pool pool) {
-        pool = IUniswapV3Pool(
-            PoolAddress.computeAddress(factory, tokenA, tokenB, fee)
-        );
+        pool = IUniswapV3Pool(PoolAddress.computeAddress(factory, tokenA, tokenB, fee));
         require(msg.sender == address(pool));
     }
 
@@ -30,13 +28,8 @@ library CallbackValidation {
     /// @param factory The contract address of the Uniswap V3 factory
     /// @param poolKey The identifying key of the V3 pool
     /// @return pool The V3 pool contract address
-    function verifyCallback(
-        address factory,
-        PoolKey memory poolKey
-    ) internal view returns (IUniswapV3Pool pool) {
-        pool = IUniswapV3Pool(
-            PoolAddress.computeAddressSorted(factory, poolKey)
-        );
+    function verifyCallback(address factory, PoolKey memory poolKey) internal view returns (IUniswapV3Pool pool) {
+        pool = IUniswapV3Pool(PoolAddress.computeAddressSorted(factory, poolKey));
         require(msg.sender == address(pool));
     }
 
@@ -44,10 +37,7 @@ library CallbackValidation {
     /// @param factory The contract address of the Uniswap V3 factory
     /// @param poolKey The abi encoded PoolKey of the V3 pool
     /// @return pool The V3 pool contract address
-    function verifyCallbackCalldata(
-        address factory,
-        bytes calldata poolKey
-    ) internal view returns (address pool) {
+    function verifyCallbackCalldata(address factory, bytes calldata poolKey) internal view returns (address pool) {
         pool = PoolAddress.computeAddressCalldata(factory, poolKey);
         require(msg.sender == pool);
     }

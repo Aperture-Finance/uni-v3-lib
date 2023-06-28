@@ -11,12 +11,7 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint256 amount0
     ) external pure override returns (uint128 liquidity) {
-        return
-            LiquidityAmounts.getLiquidityForAmount0(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                amount0
-            );
+        return LiquidityAmounts.getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0);
     }
 
     function getLiquidityForAmount1(
@@ -24,12 +19,7 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint256 amount1
     ) external pure override returns (uint128 liquidity) {
-        return
-            LiquidityAmounts.getLiquidityForAmount1(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                amount1
-            );
+        return LiquidityAmounts.getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1);
     }
 
     function getLiquidityForAmounts(
@@ -39,14 +29,7 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint256 amount0,
         uint256 amount1
     ) external pure override returns (uint128 liquidity) {
-        return
-            LiquidityAmounts.getLiquidityForAmounts(
-                sqrtRatioX96,
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                amount0,
-                amount1
-            );
+        return LiquidityAmounts.getLiquidityForAmounts(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, amount0, amount1);
     }
 
     function getAmount0ForLiquidity(
@@ -54,12 +37,7 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) external pure override returns (uint256 amount0) {
-        return
-            LiquidityAmounts.getAmount0ForLiquidity(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return LiquidityAmounts.getAmount0ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
     function getAmount1ForLiquidity(
@@ -67,12 +45,7 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) external pure override returns (uint256 amount1) {
-        return
-            LiquidityAmounts.getAmount1ForLiquidity(
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return LiquidityAmounts.getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 
     function getAmountsForLiquidity(
@@ -81,12 +54,6 @@ contract LiquidityAmountsTest is ILiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) external pure override returns (uint256 amount0, uint256 amount1) {
-        return
-            LiquidityAmounts.getAmountsForLiquidity(
-                sqrtRatioX96,
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                liquidity
-            );
+        return LiquidityAmounts.getAmountsForLiquidity(sqrtRatioX96, sqrtRatioAX96, sqrtRatioBX96, liquidity);
     }
 }

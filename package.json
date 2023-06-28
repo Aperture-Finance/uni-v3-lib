@@ -35,11 +35,11 @@
     "@openzeppelin/contracts": "^4.9.2",
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.3",
-    "solady": "^0.0.101"
+    "solady": "^0.0.107"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-foundry": "^1.0.1",
-    "hardhat": "^2.15.0",
+    "@nomicfoundation/hardhat-foundry": "^1.0.2",
+    "hardhat": "^2.16.1",
     "prettier": "^2.8.8",
     "prettier-plugin-solidity": "^1.1.3",
     "ts-node": "^10.9.1",
@@ -49,6 +49,7 @@
     "plugins": [
       "prettier-plugin-solidity"
     ],
-    "endOfLine": "lf"
+    "endOfLine": "lf",
+    "printWidth": 120
   }
 }

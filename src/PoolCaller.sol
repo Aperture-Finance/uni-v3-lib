@@ -88,9 +88,7 @@ library PoolCaller {
 
     /// @dev Equivalent to `(uint160 sqrtPriceX96, int24 tick, , , , , ) = pool.slot0()`
     /// @param pool Uniswap v3 pool
-    function sqrtPriceX96AndTick(
-        V3PoolCallee pool
-    ) internal view returns (uint160 sqrtPriceX96, int24 tick) {
+    function sqrtPriceX96AndTick(V3PoolCallee pool) internal view returns (uint160 sqrtPriceX96, int24 tick) {
         bytes4 selector = IUniswapV3PoolState.slot0.selector;
         assembly ("memory-safe") {
             // Write the function selector into memory.
@@ -124,10 +122,7 @@ library PoolCaller {
     /// @dev Equivalent to `IUniswapV3Pool.tickBitmap`
     /// @param pool Uniswap v3 pool
     /// @param wordPos The key in the mapping containing the word in which the bit is stored
-    function tickBitmap(
-        V3PoolCallee pool,
-        int16 wordPos
-    ) internal view returns (uint256 tickWord) {
+    function tickBitmap(V3PoolCallee pool, int16 wordPos) internal view returns (uint256 tickWord) {
         bytes4 selector = IUniswapV3PoolState.tickBitmap.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -168,10 +163,7 @@ library PoolCaller {
 
     /// @dev Equivalent to `IUniswapV3Pool.ticks`
     /// @param pool Uniswap v3 pool
-    function ticks(
-        V3PoolCallee pool,
-        int24 tick
-    ) internal view returns (Info memory info) {
+    function ticks(V3PoolCallee pool, int24 tick) internal view returns (Info memory info) {
         bytes4 selector = IUniswapV3PoolState.ticks.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
@@ -188,10 +180,7 @@ library PoolCaller {
 
     /// @dev Equivalent to `( , int128 liquidityNet, , , , , , ) = pool.ticks(tick)`
     /// @param pool Uniswap v3 pool
-    function liquidityNet(
-        V3PoolCallee pool,
-        int24 tick
-    ) internal view returns (int128 ln) {
+    function liquidityNet(V3PoolCallee pool, int24 tick) internal view returns (int128 ln) {
         bytes4 selector = IUniswapV3PoolState.ticks.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
