@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
+import "./TernaryLib.sol";
+
 /// @title Math library for computing sqrt prices from ticks and vice versa
 /// @author Aperture Finance
 /// @author Modified from Uniswap (https://github.com/uniswap/v3-core/blob/main/contracts/libraries/TickMath.sol)
@@ -30,18 +32,14 @@ library TickMath {
         int24 tick
     ) internal pure returns (uint160 sqrtPriceX96) {
         unchecked {
-            uint256 absTick;
+            int256 tick256;
+            assembly {
+                // sign extend to make tick an int256 in twos complement
+                tick256 := signextend(2, tick)
+            }
+            uint256 absTick = TernaryLib.abs(tick256);
             /// @solidity memory-safe-assembly
             assembly {
-                // Credit to Solady (https://github.com/Vectorized/solady/blob/1873046d2ed3428e236d83682f302afde369b2c2/src/utils/FixedPointMathLib.sol#L620)
-                // sign extend to make tick an int256 in twos complement
-                tick := signextend(2, tick)
-                // mask = 0 if tick >= 0 else -1
-                let mask := sub(0, slt(tick, 0))
-                // If tick >= 0, |tick| = tick = 0 ^ tick
-                // If tick < 0, |tick| = ~~|tick| = ~(-|tick| - 1) = ~(tick - 1) = -1 ^ (tick - 1)
-                // Either case, |tick| = mask ^ (tick + mask)
-                absTick := xor(mask, add(mask, tick))
                 // Equivalent: if (absTick > MAX_TICK) revert("T");
                 if gt(absTick, MAX_TICK) {
                     // selector "Error(string)", [0x1c, 0x20)
@@ -114,7 +112,7 @@ library TickMath {
 
             // if (tick > 0) ratio = type(uint256).max / ratio;
             assembly {
-                if sgt(tick, 0) {
+                if sgt(tick256, 0) {
                     ratio := div(not(0), ratio)
                 }
             }
