@@ -7,10 +7,7 @@
 The `uni-v3-lib` by Aperture Finance consists of a suite of Solidity libraries that have been imported and rewritten
 from Uniswap's [v3-core](https://github.com/Uniswap/v3-core) and [v3-periphery](https://github.com/Uniswap/v3-periphery)
 repositories. This project aims to equip external integrators with a set of libraries crucial for interaction with the
-Uniswap V3 protocol. The `uni-v3-lib` is currently in use by
-Aperture's [liquidity position automation contract](https://github.com/Aperture-Finance/core-contracts), the audit
-report of which can be
-found [here](https://github.com/NaryaAI/publications/blob/1468e568712d5e2aa9b0ecde0a16d3f9f1d715ef/Aperture%20UniV3Automan%20Report.pdf).
+Uniswap V3 protocol.
 
 ## Overview
 

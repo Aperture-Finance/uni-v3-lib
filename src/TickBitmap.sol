@@ -91,9 +91,9 @@ library TickBitmap {
             // (bitPos + 1) may be 256 but fine
             // masked = self[wordPos] & mask
             assembly ("memory-safe") {
-                let mask := sub(shl(add(bitPos, 1), 1), 1)
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
+                let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(sload(keccak256(0, 0x40)), mask)
                 initialized := gt(masked, 0)
             }
@@ -120,9 +120,9 @@ library TickBitmap {
             // mask = ~((1 << bitPos) - 1)
             // masked = self[wordPos] & mask
             assembly ("memory-safe") {
-                let mask := not(sub(shl(bitPos, 1), 1))
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
+                let mask := not(sub(shl(bitPos, 1), 1))
                 masked := and(sload(keccak256(0, 0x40)), mask)
                 initialized := gt(masked, 0)
             }
