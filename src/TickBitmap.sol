@@ -26,7 +26,7 @@ library TickBitmap {
         }
     }
 
-    /// @notice Computes the position in the mapping where the initialized bit for a tick lives
+    /// @notice Computes the word position and the bit position given a tick.
     /// @param tick The tick for which to compute the position
     /// @return wordPos The key in the mapping containing the word in which the bit is stored
     /// @return bitPos The bit position in the word where the flag is stored
