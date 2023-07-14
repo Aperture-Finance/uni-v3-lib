@@ -99,13 +99,13 @@ library PoolAddress {
     /// @notice Deterministically computes the pool address given the factory, tokens, and the fee
     /// @dev Assumes tokens are sorted
     /// @param factory The Uniswap V3 factory contract address
-    /// @param tokenA One of the tokens in the pool, unsorted
-    /// @param tokenB The other token in the pool, unsorted
+    /// @param token0 The first token of a pool, already sorted
+    /// @param token1 The second token of a pool, already sorted
     /// @param fee The fee tier of the pool
     function computeAddressSorted(
         address factory,
-        address tokenA,
-        address tokenB,
+        address token0,
+        address token1,
         uint24 fee
     ) internal pure returns (address pool) {
         /// @solidity memory-safe-assembly
@@ -113,8 +113,8 @@ library PoolAddress {
             // Cache the free memory pointer.
             let fmp := mload(0x40)
             // Hash the pool key.
-            mstore(0, tokenA)
-            mstore(0x20, tokenB)
+            mstore(0, token0)
+            mstore(0x20, token1)
             mstore(0x40, fee)
             let poolHash := keccak256(0, 0x60)
             // abi.encodePacked(hex'ff', factory, poolHash, POOL_INIT_CODE_HASH)

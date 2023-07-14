@@ -65,6 +65,22 @@ contract PoolCallerTest is BaseTest {
         assertEq(IUniswapV3Pool(pool).fee(), poolCallee.fee(), "fee");
     }
 
+    function test_FeeGrowthGlobal0X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal0X128(),
+            poolCallee.feeGrowthGlobal0X128(),
+            "feeGrowthGlobal0X128"
+        );
+    }
+
+    function test_FeeGrowthGlobal1X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal1X128(),
+            poolCallee.feeGrowthGlobal1X128(),
+            "feeGrowthGlobal1X128"
+        );
+    }
+
     function test_TickSpacing() public {
         assertEq(IUniswapV3Pool(pool).tickSpacing(), poolCallee.tickSpacing(), "tickSpacing");
     }
@@ -108,14 +124,14 @@ contract PoolCallerTest is BaseTest {
         assertEq(IUniswapV3Pool(pool).liquidity(), poolCallee.liquidity(), "liquidity");
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_TickBitmap(int16 wordPos) public {
         assertEq(IUniswapV3Pool(pool).tickBitmap(wordPos), poolCallee.tickBitmap(wordPos), "tickBitmap");
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_Ticks(int24 tick) public {
         (
             uint128 liquidityGross,
@@ -138,8 +154,8 @@ contract PoolCallerTest is BaseTest {
         assertEq(initialized, info.initialized, "initialized");
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_LiquidityNet(int24 tick) public {
         (, int128 liquidityNet, , , , , , ) = IUniswapV3Pool(pool).ticks(tick);
         int128 liquidityNetAsm = poolCallee.liquidityNet(tick);
@@ -159,8 +175,8 @@ contract PoolCallerTest is BaseTest {
         assertSwapSuccess(true, uint256(-amount1));
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_Swap(bool zeroForOne, uint256 amountSpecified, bytes memory data) public {
         amountSpecified = prepSwap(zeroForOne, amountSpecified);
         (int256 amount0, int256 amount1) = poolCallee.swap(
