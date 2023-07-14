@@ -72,6 +72,30 @@ library NPMCaller {
         }
     }
 
+    /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+    /// @param npm Uniswap v3 Nonfungible Position Manager
+    /// @param owner The address that owns the NFTs
+    /// @param index The index of the token ID
+    function tokenOfOwnerByIndex(INPM npm, address owner, uint256 index) internal view returns (uint256 tokenId) {
+        bytes4 selector = IERC721Enumerable.tokenOfOwnerByIndex.selector;
+        assembly ("memory-safe") {
+            // Write the abi-encoded calldata into memory.
+            mstore(0, selector)
+            mstore(4, owner)
+            mstore(0x24, index)
+            // We use 68 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20)) {
+                returndatacopy(0, 0, returndatasize())
+                // Bubble up the revert reason.
+                revert(0, returndatasize())
+            }
+            tokenId := mload(0)
+            // Clear first 4 bytes of the free memory pointer.
+            mstore(0x24, 0)
+        }
+    }
+
     /// @dev Returns the total amount of tokens stored by the contract.
     function totalSupply(INPM npm) internal view returns (uint256 amount) {
         bytes4 selector = IERC721Enumerable.totalSupply.selector;

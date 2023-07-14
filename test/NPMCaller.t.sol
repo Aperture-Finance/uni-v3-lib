@@ -20,6 +20,10 @@ contract NPMCallerWrapper {
         return NPMCaller.balanceOf(npm, owner);
     }
 
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256) {
+        return NPMCaller.tokenOfOwnerByIndex(npm, owner, index);
+    }
+
     function totalSupply() external view returns (uint256) {
         return NPMCaller.totalSupply(npm);
     }
@@ -146,19 +150,29 @@ contract NPMCallerTest is BaseTest {
         return vm.sign(pk, permitDigest(spender, tokenId, deadline));
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_BalanceOf(address owner) public {
         vm.assume(owner != address(0));
         assertEq(npmCaller.balanceOf(owner), npm.balanceOf(owner));
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_TokenOfOwnerByIndex(address owner) public {
+        vm.assume(owner != address(0));
+        uint256 balance = npmCaller.balanceOf(owner);
+        for (uint256 i; i < balance; ++i) {
+            assertEq(npmCaller.tokenOfOwnerByIndex(owner, i), npm.tokenOfOwnerByIndex(owner, i));
+        }
     }
 
     function test_TotalSupply() public {
         assertEq(npmCaller.totalSupply(), npm.totalSupply());
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_OwnerOf(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.ownerOf(tokenId) returns (address owner) {
@@ -173,8 +187,8 @@ contract NPMCallerTest is BaseTest {
         npmCaller.ownerOf(0);
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_GetApproved(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.getApproved(tokenId) returns (address operator) {
@@ -207,8 +221,8 @@ contract NPMCallerTest is BaseTest {
         );
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_IsApprovedForAll(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.ownerOf(tokenId) returns (address owner) {
@@ -231,8 +245,8 @@ contract NPMCallerTest is BaseTest {
         assertEq(npmCaller.factory(), npm.factory(), "factory");
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_PositionsFull(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positionsFull(tokenId) returns (PositionFull memory pos) {
@@ -248,8 +262,8 @@ contract NPMCallerTest is BaseTest {
         }
     }
 
-    /// forge-config: default.fuzz.runs = 256
-    /// forge-config: ci.fuzz.runs = 256
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
     function testFuzz_Positions(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positions(tokenId) returns (Position memory pos) {
