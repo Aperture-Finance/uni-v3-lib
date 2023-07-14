@@ -65,6 +65,22 @@ contract PoolCallerTest is BaseTest {
         assertEq(IUniswapV3Pool(pool).fee(), poolCallee.fee(), "fee");
     }
 
+    function test_FeeGrowthGlobal0X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal0X128(),
+            poolCallee.feeGrowthGlobal0X128(),
+            "feeGrowthGlobal0X128"
+        );
+    }
+
+    function test_FeeGrowthGlobal1X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal1X128(),
+            poolCallee.feeGrowthGlobal1X128(),
+            "feeGrowthGlobal1X128"
+        );
+    }
+
     function test_TickSpacing() public {
         assertEq(IUniswapV3Pool(pool).tickSpacing(), poolCallee.tickSpacing(), "tickSpacing");
     }

@@ -44,6 +44,10 @@ contract NPMCallerWrapper {
         NPMCaller.setApprovalForAll(npm, operator, approved);
     }
 
+    function factory() external view returns (address) {
+        return NPMCaller.factory(npm);
+    }
+
     function positionsFull(uint256 tokenId) external view returns (PositionFull memory) {
         return NPMCaller.positionsFull(npm, tokenId);
     }
@@ -221,6 +225,10 @@ contract NPMCallerTest is BaseTest {
         NPMCallerWrapper _npmCaller = npmCaller;
         _npmCaller.setApprovalForAll(address(this), true);
         assertEq(npm.isApprovedForAll(address(_npmCaller), address(this)), true, "setApprovalForAll");
+    }
+
+    function test_Factory() public {
+        assertEq(npmCaller.factory(), npm.factory(), "factory");
     }
 
     /// forge-config: default.fuzz.runs = 256

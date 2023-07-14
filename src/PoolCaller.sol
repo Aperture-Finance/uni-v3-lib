@@ -32,6 +32,38 @@ library PoolCaller {
         }
     }
 
+    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal0X128`
+    /// @param pool Uniswap v3 pool
+    function feeGrowthGlobal0X128(V3PoolCallee pool) internal view returns (uint256 f) {
+        bytes4 selector = IUniswapV3PoolState.feeGrowthGlobal0X128.selector;
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            f := mload(0)
+        }
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal1X128`
+    /// @param pool Uniswap v3 pool
+    function feeGrowthGlobal1X128(V3PoolCallee pool) internal view returns (uint256 f) {
+        bytes4 selector = IUniswapV3PoolState.feeGrowthGlobal1X128.selector;
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            f := mload(0)
+        }
+    }
+
     /// @dev Equivalent to `IUniswapV3Pool.tickSpacing`
     /// @param pool Uniswap v3 pool
     function tickSpacing(V3PoolCallee pool) internal view returns (int24 ts) {

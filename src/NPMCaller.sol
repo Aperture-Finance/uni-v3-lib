@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {INonfungiblePositionManager as INPM, IERC721Enumerable, IERC721Permit} from "./interfaces/INonfungiblePositionManager.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import {INonfungiblePositionManager as INPM, IERC721Permit, IPeripheryImmutableState} from "./interfaces/INonfungiblePositionManager.sol";
 
 // details about the uniswap position
 struct PositionFull {
@@ -197,6 +197,22 @@ library NPMCaller {
             }
             // Clear first 4 bytes of the free memory pointer.
             mstore(0x24, 0)
+        }
+    }
+
+    /// @dev Equivalent to `INonfungiblePositionManager.factory`
+    /// @param npm Nonfungible position manager
+    function factory(INPM npm) internal view returns (address f) {
+        bytes4 selector = IPeripheryImmutableState.factory.selector;
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), npm, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            f := mload(0)
         }
     }
 
