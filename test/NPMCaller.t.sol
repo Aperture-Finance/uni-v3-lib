@@ -159,11 +159,15 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TokenOfOwnerByIndex(address owner) public {
-        vm.assume(owner != address(0));
-        uint256 balance = npmCaller.balanceOf(owner);
-        for (uint256 i; i < balance; ++i) {
-            assertEq(npmCaller.tokenOfOwnerByIndex(owner, i), npm.tokenOfOwnerByIndex(owner, i));
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public {
+        tokenId = bound(tokenId, 1, 10000);
+        try npm.ownerOf(tokenId) returns (address owner) {
+            uint256 balance = npmCaller.balanceOf(owner);
+            for (uint256 i; i < balance; ++i) {
+                assertEq(npmCaller.tokenOfOwnerByIndex(owner, i), npm.tokenOfOwnerByIndex(owner, i));
+            }
+        } catch Error(string memory reason) {
+            assertEq(reason, "ERC721: owner query for nonexistent token");
         }
     }
 
@@ -175,10 +179,11 @@ contract NPMCallerTest is BaseTest {
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_OwnerOf(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
-        try npmCaller.ownerOf(tokenId) returns (address owner) {
-            assertEq(owner, npm.ownerOf(tokenId), "ownerOf");
-        } catch Error(string memory reason) {
-            assertEq(reason, "ERC721: owner query for nonexistent token");
+        try npm.ownerOf(tokenId) returns (address owner) {
+            assertEq(owner, npmCaller.ownerOf(tokenId), "ownerOf");
+        } catch (bytes memory reason) {
+            vm.expectRevert(reason);
+            npmCaller.ownerOf(tokenId);
         }
     }
 
@@ -191,10 +196,11 @@ contract NPMCallerTest is BaseTest {
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_GetApproved(uint256 tokenId) public {
         tokenId = bound(tokenId, 1, 10000);
-        try npmCaller.getApproved(tokenId) returns (address operator) {
-            assertEq(operator, npm.getApproved(tokenId), "getApproved");
-        } catch Error(string memory reason) {
-            assertEq(reason, "ERC721: approved query for nonexistent token");
+        try npm.getApproved(tokenId) returns (address operator) {
+            assertEq(operator, npmCaller.getApproved(tokenId), "getApproved");
+        } catch (bytes memory reason) {
+            vm.expectRevert(reason);
+            npmCaller.getApproved(tokenId);
         }
     }
 
