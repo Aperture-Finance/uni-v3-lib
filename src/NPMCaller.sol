@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {INonfungiblePositionManager as INPM, IERC721Enumerable, IERC721Permit} from "./interfaces/INonfungiblePositionManager.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import {INonfungiblePositionManager as INPM, IERC721Permit, IPeripheryImmutableState} from "./interfaces/INonfungiblePositionManager.sol";
 
 // details about the uniswap position
 struct PositionFull {
@@ -69,6 +69,30 @@ library NPMCaller {
                 revert(0, returndatasize())
             }
             amount := mload(0)
+        }
+    }
+
+    /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+    /// @param npm Uniswap v3 Nonfungible Position Manager
+    /// @param owner The address that owns the NFTs
+    /// @param index The index of the token ID
+    function tokenOfOwnerByIndex(INPM npm, address owner, uint256 index) internal view returns (uint256 tokenId) {
+        bytes4 selector = IERC721Enumerable.tokenOfOwnerByIndex.selector;
+        assembly ("memory-safe") {
+            // Write the abi-encoded calldata into memory.
+            mstore(0, selector)
+            mstore(4, owner)
+            mstore(0x24, index)
+            // We use 68 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20)) {
+                returndatacopy(0, 0, returndatasize())
+                // Bubble up the revert reason.
+                revert(0, returndatasize())
+            }
+            tokenId := mload(0)
+            // Clear first 4 bytes of the free memory pointer.
+            mstore(0x24, 0)
         }
     }
 
@@ -197,6 +221,22 @@ library NPMCaller {
             }
             // Clear first 4 bytes of the free memory pointer.
             mstore(0x24, 0)
+        }
+    }
+
+    /// @dev Equivalent to `INonfungiblePositionManager.factory`
+    /// @param npm Nonfungible position manager
+    function factory(INPM npm) internal view returns (address f) {
+        bytes4 selector = IPeripheryImmutableState.factory.selector;
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), npm, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            f := mload(0)
         }
     }
 
