@@ -15,7 +15,7 @@ sparse_mode = true
 
 verbosity = 2
 ffi = false
-fs_permissions = [{ access = "read", path = "./artifacts"}]
+fs_permissions = [{ access = "read", path = "./artifacts" }]
 
 [fuzz]
 runs = 65536
