@@ -3,16 +3,16 @@ import { HardhatUserConfig } from "hardhat/config";
 import { SolidityUserConfig } from "hardhat/types/config";
 
 const DEFAULT_COMPILER_SETTINGS = {
-  version: "0.8.18",
+  version: "0.8.20",
   settings: {
     optimizer: {
       enabled: true,
-      runs: 2 ** 32 - 1,
+      runs: 2 ** 32 - 1
     },
     metadata: {
-      bytecodeHash: "none",
-    },
-  },
+      bytecodeHash: "none"
+    }
+  }
 };
 
 const OLD_COMPILER_SETTINGS = {
@@ -20,12 +20,12 @@ const OLD_COMPILER_SETTINGS = {
   settings: {
     optimizer: {
       enabled: true,
-      runs: 2 ** 32 - 1,
+      runs: 2 ** 32 - 1
     },
     metadata: {
-      bytecodeHash: "none",
-    },
-  },
+      bytecodeHash: "none"
+    }
+  }
 };
 
 /**
@@ -36,9 +36,9 @@ const config: HardhatUserConfig = {
     compilers: [DEFAULT_COMPILER_SETTINGS, OLD_COMPILER_SETTINGS],
     overrides: {
       "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol": OLD_COMPILER_SETTINGS,
-      "@uniswap/v3-core/contracts/libraries/TickBitmap.sol": OLD_COMPILER_SETTINGS,
-    },
-  } as SolidityUserConfig,
+      "@uniswap/v3-core/contracts/libraries/TickBitmap.sol": OLD_COMPILER_SETTINGS
+    }
+  } as SolidityUserConfig
 };
 
 export default config;
