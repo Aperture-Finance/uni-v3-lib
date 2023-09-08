@@ -18,12 +18,12 @@ contract BitMathWrapper is IBitMath {
 /// @title Test contract for BitMath
 contract BitMathTest is BaseTest {
     // Wrapper that exposes the original BitMath library.
-    IBitMath internal ogWrapper = IBitMath(makeAddr("original"));
+    IBitMath internal ogWrapper;
     BitMathWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = IBitMath(deployCode("BitMathTest.sol"));
         wrapper = new BitMathWrapper();
-        makeOriginalLibrary(address(ogWrapper), "BitMathTest");
     }
 
     function testFuzz_MSB(uint256 x) public {

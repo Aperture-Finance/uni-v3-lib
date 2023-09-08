@@ -5,17 +5,14 @@ libs = ["lib"]
 test = 'test'
 cache = true
 
-solc_version = '0.8.20'
-evm_version = 'shanghai'
 optimizer = true
 optimizer_runs = 4294967295
-via_ir = true
 bytecode_hash = 'none'
 sparse_mode = true
 
 verbosity = 2
 ffi = false
-fs_permissions = [{ access = "read", path = "./artifacts" }]
+fs_permissions = [{ access = "read", path = "./out" }]
 
 [fuzz]
 runs = 65536
