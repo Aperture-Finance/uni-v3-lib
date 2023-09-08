@@ -10,10 +10,10 @@ import "./Base.t.sol";
 /// @dev Tests for FullMath
 contract FullMathTest is BaseTest {
     // Wrapper that exposes the original FullMath library.
-    IFullMath internal wrapper = IFullMath(makeAddr("original"));
+    IFullMath internal wrapper;
 
     function setUp() public override {
-        makeOriginalLibrary(address(wrapper), "FullMathTest");
+        wrapper = IFullMath(deployCode("FullMathTest.sol"));
     }
 
     /// @dev Helper function to assume that the `mulDiv` will not overflow.

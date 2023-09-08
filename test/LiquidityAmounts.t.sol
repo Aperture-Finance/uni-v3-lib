@@ -62,12 +62,12 @@ contract LiquidityAmountsWrapper is ILiquidityAmounts {
 /// @dev Test contract for LiquidityAmounts
 contract LiquidityAmountsTest is BaseTest {
     // Wrapper that exposes the original LiquidityMath library.
-    ILiquidityAmounts internal ogWrapper = ILiquidityAmounts(makeAddr("original"));
+    ILiquidityAmounts internal ogWrapper;
     LiquidityAmountsWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = ILiquidityAmounts(deployCode("LiquidityAmountsTest.sol"));
         wrapper = new LiquidityAmountsWrapper();
-        makeOriginalLibrary(address(ogWrapper), "LiquidityAmountsTest");
     }
 
     function testFuzz_GetLiquidityForAmount0(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint256 amount0) public {

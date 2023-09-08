@@ -80,12 +80,12 @@ contract SqrtPriceMathWrapper is ISqrtPriceMath {
 /// @title Test contract for SqrtPriceMath
 contract SqrtPriceMathTest is BaseTest {
     // Wrapper that exposes the original SqrtPriceMath library.
-    ISqrtPriceMath internal ogWrapper = ISqrtPriceMath(makeAddr("original"));
+    ISqrtPriceMath internal ogWrapper;
     SqrtPriceMathWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = ISqrtPriceMath(deployCode("SqrtPriceMathTest.sol"));
         wrapper = new SqrtPriceMathWrapper();
-        makeOriginalLibrary(address(ogWrapper), "SqrtPriceMathTest");
     }
 
     function testFuzz_GetNextSqrtPriceFromAmount0RoundingUp(

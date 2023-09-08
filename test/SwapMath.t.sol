@@ -54,12 +54,12 @@ contract SwapMathWrapper is ISwapMath {
 /// @title Test contract for SwapMath
 contract SwapMathTest is BaseTest {
     // Wrapper that exposes the original SwapMath library.
-    ISwapMath internal ogWrapper = ISwapMath(makeAddr("original"));
+    ISwapMath internal ogWrapper;
     SwapMathWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = ISwapMath(deployCode("SwapMathTest.sol"));
         wrapper = new SwapMathWrapper();
-        makeOriginalLibrary(address(ogWrapper), "SwapMathTest");
     }
 
     function testFuzz_ComputeSwapStep(
