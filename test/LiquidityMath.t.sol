@@ -14,12 +14,12 @@ contract LiquidityMathWrapper is ILiquidityMath {
 /// @dev Tests for FullMath
 contract LiquidityMathTest is BaseTest {
     // Wrapper that exposes the original LiquidityMath library.
-    ILiquidityMath internal ogWrapper = ILiquidityMath(makeAddr("original"));
+    ILiquidityMath internal ogWrapper;
     LiquidityMathWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = ILiquidityMath(deployCode("LiquidityMathTest.sol"));
         wrapper = new LiquidityMathWrapper();
-        makeOriginalLibrary(address(ogWrapper), "LiquidityMathTest");
     }
 
     /// @notice Test the revert reason for underflow

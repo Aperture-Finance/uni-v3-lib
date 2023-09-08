@@ -23,8 +23,8 @@
     "uniswap-v3"
   ],
   "scripts": {
-    "clean": "hardhat clean && forge clean",
-    "compile": "hardhat compile",
+    "build": "forge build",
+    "clean": "forge clean",
     "test": "forge test",
     "snapshot": "forge snapshot",
     "snapshot:diff": "forge snapshot --diff",
@@ -32,18 +32,15 @@
     "prettier:fix": "prettier -w {src,test}/**/*.sol"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "@uniswap/v3-core": "^1.0.1",
     "@uniswap/v3-periphery": "^1.4.3",
-    "solady": "^0.0.110"
+    "solady": "^0.0.119"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-foundry": "^1.0.2",
-    "hardhat": "^2.17.0",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.3",
     "prettier-plugin-solidity": "^1.1.3",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.1.6"
+    "typescript": "^5.2.2"
   },
   "prettier": {
     "plugins": [

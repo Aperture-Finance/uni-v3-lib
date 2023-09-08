@@ -52,12 +52,12 @@ contract PoolAddressWrapper is IPoolAddress {
 /// @dev Test contract for CallbackValidation and PoolAddress.
 contract PoolAddressTest is BaseTest {
     // Wrapper that exposes the original PoolAddress library.
-    IPoolAddress internal ogWrapper = IPoolAddress(makeAddr("original"));
+    IPoolAddress internal ogWrapper;
     PoolAddressWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = IPoolAddress(deployCode("PoolAddressTest.sol"));
         wrapper = new PoolAddressWrapper();
-        makeOriginalLibrary(address(ogWrapper), "PoolAddressTest");
     }
 
     /// @notice Test `computeAddress` against the original Uniswap library.

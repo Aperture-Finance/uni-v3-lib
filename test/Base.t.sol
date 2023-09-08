@@ -47,13 +47,6 @@ abstract contract BaseTest is Test {
         return TickBitmap.compress(tick, _tickSpacing) * _tickSpacing;
     }
 
-    /// @dev Deploy a test wrapper with `name` to `lib` using `vm.etch`.
-    function makeOriginalLibrary(address lib, string memory name) internal {
-        string memory file = string.concat(vm.projectRoot(), "/artifacts/src/test/", name, ".sol/", name, ".json");
-        bytes memory deployedBytecode = vm.parseJsonBytes(vm.readFile(file), ".deployedBytecode");
-        vm.etch(lib, deployedBytecode);
-    }
-
     function boundUint160(uint160 x) internal view returns (uint160) {
         return uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
     }

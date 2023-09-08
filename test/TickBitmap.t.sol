@@ -31,12 +31,12 @@ contract TickBitmapWrapper is ITickBitmap {
 /// @title Test contract for TickBitmap
 contract TickBitmapTest is BaseTest {
     // Wrapper that exposes the original TickBitmap library.
-    ITickBitmap internal ogWrapper = ITickBitmap(makeAddr("original"));
+    ITickBitmap internal ogWrapper;
     TickBitmapWrapper internal wrapper;
 
     function setUp() public override {
+        ogWrapper = ITickBitmap(deployCode("TickBitmapTest.sol"));
         wrapper = new TickBitmapWrapper();
-        makeOriginalLibrary(address(ogWrapper), "TickBitmapTest");
     }
 
     function testFuzz_Position(int24 tick) public {
