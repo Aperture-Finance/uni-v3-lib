@@ -172,14 +172,14 @@ library TickBitmap {
 
             // if there are no initialized ticks to the right of or at the current tick, return rightmost in the word
             // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
-            if (initialized) {
+            if (!initialized) {
+                assembly {
+                    next := mul(sub(compressed, bitPos), tickSpacing)
+                }
+            } else {
                 uint8 msb = BitMath.mostSignificantBit(masked);
                 assembly {
                     next := mul(add(sub(compressed, bitPos), msb), tickSpacing)
-                }
-            } else {
-                assembly {
-                    next := mul(sub(compressed, bitPos), tickSpacing)
                 }
             }
         } else {
@@ -199,14 +199,14 @@ library TickBitmap {
 
             // if there are no initialized ticks to the left of the current tick, return leftmost in the word
             // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
-            if (initialized) {
+            if (!initialized) {
+                assembly {
+                    next := mul(add(sub(compressed, bitPos), 255), tickSpacing)
+                }
+            } else {
                 uint8 lsb = BitMath.leastSignificantBit(masked);
                 assembly {
                     next := mul(add(sub(compressed, bitPos), lsb), tickSpacing)
-                }
-            } else {
-                assembly {
-                    next := mul(add(sub(compressed, bitPos), 255), tickSpacing)
                 }
             }
         }
