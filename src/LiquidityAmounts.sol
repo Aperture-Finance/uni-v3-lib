@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import "@uniswap/v3-core/contracts/libraries/FixedPoint96.sol";
 import "./FullMath.sol";
+import "./SafeCast.sol";
 import "./TernaryLib.sol";
 import "./UnsafeMath.sol";
 
@@ -12,15 +13,7 @@ import "./UnsafeMath.sol";
 /// @notice Provides functions for computing liquidity amounts from token amounts and prices
 library LiquidityAmounts {
     using UnsafeMath for *;
-
-    error OverflowUint128();
-
-    /// @notice Downcasts uint256 to uint128
-    /// @param x The uint258 to be downcasted
-    /// @return y The passed value, downcasted to uint128
-    function toUint128(uint256 x) private pure returns (uint128 y) {
-        if ((y = uint128(x)) != x) revert OverflowUint128();
-    }
+    using SafeCast for uint256;
 
     /// @notice Computes the amount of liquidity received for a given amount of token0 and price range
     /// @dev Calculates amount0 * (sqrt(upper) * sqrt(lower)) / (sqrt(upper) - sqrt(lower))
@@ -35,7 +28,7 @@ library LiquidityAmounts {
     ) internal pure returns (uint128 liquidity) {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
         uint256 intermediate = FullMath.mulDiv96(sqrtRatioAX96, sqrtRatioBX96);
-        return toUint128(FullMath.mulDiv(amount0, intermediate, sqrtRatioBX96.sub(sqrtRatioAX96)));
+        return FullMath.mulDiv(amount0, intermediate, sqrtRatioBX96.sub(sqrtRatioAX96)).toUint128();
     }
 
     /// @notice Computes the amount of liquidity received for a given amount of token1 and price range
@@ -50,7 +43,7 @@ library LiquidityAmounts {
         uint256 amount1
     ) internal pure returns (uint128 liquidity) {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
-        return toUint128(FullMath.mulDiv(amount1, FixedPoint96.Q96, sqrtRatioBX96.sub(sqrtRatioAX96)));
+        return FullMath.mulDiv(amount1, FixedPoint96.Q96, sqrtRatioBX96.sub(sqrtRatioAX96)).toUint128();
     }
 
     /// @notice Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
