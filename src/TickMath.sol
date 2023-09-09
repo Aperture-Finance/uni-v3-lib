@@ -261,13 +261,13 @@ library TickMath {
         }
 
         // Equivalent: tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
-        if (tickLow == tickHi) {
-            tick = tickHi;
-        } else {
+        if (tickLow != tickHi) {
             uint160 sqrtRatioAtTickHi = getSqrtRatioAtTick(tickHi);
             assembly {
                 tick := sub(tickHi, gt(sqrtRatioAtTickHi, sqrtPriceX96))
             }
+        } else {
+            tick = tickHi;
         }
     }
 }
