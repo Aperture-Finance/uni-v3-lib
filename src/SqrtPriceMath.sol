@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.4;
 
-import "@uniswap/v3-core/contracts/libraries/SafeCast.sol";
 import "@uniswap/v3-core/contracts/libraries/FixedPoint96.sol";
 
 import "./FullMath.sol";
+import "./SafeCast.sol";
 import "./TernaryLib.sol";
 import "./UnsafeMath.sol";
 
