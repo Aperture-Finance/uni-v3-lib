@@ -16,7 +16,7 @@ fs_permissions = [{ access = "read", path = "./out" }]
 
 [fuzz]
 runs = 65536
-seed = 42
+seed = "42"
 
 [profile.ci]
 via_ir = false

@@ -53,7 +53,7 @@ contract FullMathTest is BaseTest {
     function testFuzz_MulDivUp_OZ(uint256 a, uint256 b, uint256 denominator) public {
         assumeNoOverflow(a, b, denominator);
         if (Math.mulDiv(a, b, denominator) < type(uint256).max) {
-            assertEq(FullMath.mulDivRoundingUp(a, b, denominator), Math.mulDiv(a, b, denominator, Math.Rounding.Up));
+            assertEq(FullMath.mulDivRoundingUp(a, b, denominator), Math.mulDiv(a, b, denominator, Math.Rounding.Ceil));
         }
     }
 
