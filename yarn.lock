@@ -83,10 +83,10 @@ semver@^7.3.8:
   dependencies:
     lru-cache "^6.0.0"
 
-solady@^0.0.134:
-  version "0.0.134"
-  resolved "https://registry.yarnpkg.com/solady/-/solady-0.0.134.tgz#d960f52bed2129ceae9f27f141b9132185e75b00"
-  integrity sha512-j4B+lCxBZw5GOR1r4B1tI0VzYXpKh8x08lvSb5gHtum0VsKs5O/H4OVzNb1KP/cO4vE1wiTYatt0nLnoSQpTzA==
+solady@^0.0.138:
+  version "0.0.138"
+  resolved "https://registry.yarnpkg.com/solady/-/solady-0.0.138.tgz#efa7849b35e46301d2f334db04ac731c59efd466"
+  integrity sha512-5jRi1IwgoE3+2kVo/zIPRYaSdQhypl2qmmZQj03y9tq6OiswXLYaag7kvhvp6v+iBFSlO2bYgsk8KFXQcX256w==
 
 solidity-comments-extractor@^0.0.7:
   version "0.0.7"

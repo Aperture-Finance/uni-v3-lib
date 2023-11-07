@@ -155,6 +155,10 @@ contract PoolCallerTest is BaseTest {
         assertEq(initialized, info.initialized, "initialized");
     }
 
+    function test_LiquidityNet() public {
+        testFuzz_LiquidityNet(currentTick());
+    }
+
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_LiquidityNet(int24 tick) public {
@@ -198,15 +202,20 @@ contract PoolCallerTest is BaseTest {
             uint160 secondsPerLiquidityCumulativeX128,
             bool initialized
         ) = IUniswapV3Pool(pool).observations(index);
-        PoolCaller.Observation memory ob = poolCallee.observations(index);
-        assertEq(blockTimestamp, ob.blockTimestamp, "blockTimestamp");
-        assertEq(tickCumulative, ob.tickCumulative, "tickCumulative");
+        (
+            uint32 blockTimestampAsm,
+            int56 tickCumulativeAsm,
+            uint160 secondsPerLiquidityCumulativeX128Asm,
+            bool initializedAsm
+        ) = poolCallee.observations(index);
+        assertEq(blockTimestamp, blockTimestampAsm, "blockTimestamp");
+        assertEq(tickCumulative, tickCumulativeAsm, "tickCumulative");
         assertEq(
             secondsPerLiquidityCumulativeX128,
-            ob.secondsPerLiquidityCumulativeX128,
+            secondsPerLiquidityCumulativeX128Asm,
             "secondsPerLiquidityCumulativeX128"
         );
-        assertEq(initialized, ob.initialized, "initialized");
+        assertEq(initialized, initializedAsm, "initialized");
     }
 
     function test_Swap() public {

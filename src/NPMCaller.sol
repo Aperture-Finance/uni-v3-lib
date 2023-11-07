@@ -49,18 +49,30 @@ struct Position {
 /// When bubbling up the revert reason, it is safe to overwrite the free memory pointer 0x40 and the zero pointer 0x60
 /// before exiting because a contract obtains a freshly cleared instance of memory for each message call.
 library NPMCaller {
-    /// @notice Count all NFTs assigned to an owner
-    /// @dev NFTs assigned to the zero address are considered invalid, and this
-    /// function throws for queries about the zero address.
-    /// @param npm Uniswap v3 Nonfungible Position Manager
-    /// @param owner An address for whom to query the balance
-    /// @return amount The number of NFTs owned by `owner`, possibly zero
-    function balanceOf(INPM npm, address owner) internal view returns (uint256 amount) {
-        bytes4 selector = IERC721.balanceOf.selector;
+    /// @dev Makes a staticcall to the NPM with only the selector and returns a memory word.
+    function staticcall_0i_1o(INPM npm, bytes4 selector) internal view returns (uint256 res) {
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), npm, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            res := mload(0)
+        }
+    }
+
+    /// @dev Makes a staticcall to the NPM with one argument and returns a memory word.
+    function staticcall_1i_1o(
+        INPM npm,
+        bytes4 selector,
+        uint256 arg
+    ) internal view returns (uint256 res) {
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
             mstore(0, selector)
-            mstore(4, owner)
+            mstore(4, arg)
             // We use 36 because of the length of our calldata.
             // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
             if iszero(staticcall(gas(), npm, 0, 0x24, 0, 0x20)) {
@@ -68,21 +80,22 @@ library NPMCaller {
                 // Bubble up the revert reason.
                 revert(0, returndatasize())
             }
-            amount := mload(0)
+            res := mload(0)
         }
     }
 
-    /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
-    /// @param npm Uniswap v3 Nonfungible Position Manager
-    /// @param owner The address that owns the NFTs
-    /// @param index The index of the token ID
-    function tokenOfOwnerByIndex(INPM npm, address owner, uint256 index) internal view returns (uint256 tokenId) {
-        bytes4 selector = IERC721Enumerable.tokenOfOwnerByIndex.selector;
+    /// @dev Makes a staticcall to the NPM with two arguments and returns a memory word.
+    function staticcall_2i_1o(
+        INPM npm,
+        bytes4 selector,
+        uint256 arg0,
+        uint256 arg1
+    ) internal view returns (uint256 res) {
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
             mstore(0, selector)
-            mstore(4, owner)
-            mstore(0x24, index)
+            mstore(4, arg0)
+            mstore(0x24, arg1)
             // We use 68 because of the length of our calldata.
             // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
             if iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20)) {
@@ -90,23 +103,41 @@ library NPMCaller {
                 // Bubble up the revert reason.
                 revert(0, returndatasize())
             }
-            tokenId := mload(0)
+            res := mload(0)
             // Clear first 4 bytes of the free memory pointer.
             mstore(0x24, 0)
         }
     }
 
+    /// @notice Count all NFTs assigned to an owner
+    /// @dev NFTs assigned to the zero address are considered invalid, and this
+    /// function throws for queries about the zero address.
+    /// @param npm Uniswap v3 Nonfungible Position Manager
+    /// @param owner An address for whom to query the balance
+    /// @return amount The number of NFTs owned by `owner`, possibly zero
+    function balanceOf(INPM npm, address owner) internal view returns (uint256 amount) {
+        uint256 _owner;
+        assembly {
+            _owner := owner
+        }
+        amount = staticcall_1i_1o(npm, IERC721.balanceOf.selector, _owner);
+    }
+
+    /// @dev Returns a token ID owned by `owner` at a given `index` of its token list.
+    /// @param npm Uniswap v3 Nonfungible Position Manager
+    /// @param owner The address that owns the NFTs
+    /// @param index The index of the token ID
+    function tokenOfOwnerByIndex(INPM npm, address owner, uint256 index) internal view returns (uint256 tokenId) {
+        uint256 _owner;
+        assembly {
+            _owner := owner
+        }
+        tokenId = staticcall_2i_1o(npm, IERC721Enumerable.tokenOfOwnerByIndex.selector, _owner, index);
+    }
+
     /// @dev Returns the total amount of tokens stored by the contract.
     function totalSupply(INPM npm) internal view returns (uint256 amount) {
-        bytes4 selector = IERC721Enumerable.totalSupply.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            // `totalSupply` should never revert according to the ERC721 standard.
-            amount := mload(iszero(staticcall(gas(), npm, 0, 4, 0, 0x20)))
-        }
+        amount = staticcall_0i_1o(npm, IERC721Enumerable.totalSupply.selector);
     }
 
     /// @notice Find the owner of an NFT
@@ -116,19 +147,9 @@ library NPMCaller {
     /// @param tokenId The identifier for an NFT
     /// @return owner The address of the owner of the NFT
     function ownerOf(INPM npm, uint256 tokenId) internal view returns (address owner) {
-        bytes4 selector = IERC721.ownerOf.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
-            mstore(4, tokenId)
-            // We use 36 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), npm, 0, 0x24, 0, 0x20)) {
-                returndatacopy(0, 0, returndatasize())
-                // Bubble up the revert reason.
-                revert(0, returndatasize())
-            }
-            owner := mload(0)
+        uint256 res = staticcall_1i_1o(npm, IERC721.ownerOf.selector, tokenId);
+        assembly {
+            owner := res
         }
     }
 
@@ -138,19 +159,9 @@ library NPMCaller {
     /// @param tokenId The NFT to find the approved address for
     /// @return operator The approved address for this NFT, or the zero address if there is none
     function getApproved(INPM npm, uint256 tokenId) internal view returns (address operator) {
-        bytes4 selector = IERC721.getApproved.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
-            mstore(4, tokenId)
-            // We use 36 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), npm, 0, 0x24, 0, 0x20)) {
-                returndatacopy(0, 0, returndatasize())
-                // Bubble up the revert reason.
-                revert(0, returndatasize())
-            }
-            operator := mload(0)
+        uint256 res = staticcall_1i_1o(npm, IERC721.getApproved.selector, tokenId);
+        assembly {
+            operator := res
         }
     }
 
@@ -185,18 +196,15 @@ library NPMCaller {
     /// @param operator The address that acts on behalf of the owner
     /// @return isApproved True if `operator` is an approved operator for `owner`, false otherwise
     function isApprovedForAll(INPM npm, address owner, address operator) internal view returns (bool isApproved) {
-        bytes4 selector = IERC721.isApprovedForAll.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
-            mstore(4, owner)
-            mstore(0x24, operator)
-            // We use 68 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            // `isApprovedForAll` should never revert according to the ERC721 standard.
-            isApproved := mload(iszero(staticcall(gas(), npm, 0, 0x44, 0, 0x20)))
-            // Clear first 4 bytes of the free memory pointer.
-            mstore(0x24, 0)
+        uint256 _owner;
+        uint256 _operator;
+        assembly {
+            _owner := owner
+            _operator := operator
+        }
+        uint256 res = staticcall_2i_1o(npm, IERC721.isApprovedForAll.selector, _owner, _operator);
+        assembly {
+            isApproved := res
         }
     }
 
@@ -227,16 +235,9 @@ library NPMCaller {
     /// @dev Equivalent to `INonfungiblePositionManager.factory`
     /// @param npm Nonfungible position manager
     function factory(INPM npm) internal view returns (address f) {
-        bytes4 selector = IPeripheryImmutableState.factory.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), npm, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            f := mload(0)
+        uint256 res = staticcall_0i_1o(npm, IPeripheryImmutableState.factory.selector);
+        assembly {
+            f := res
         }
     }
 
