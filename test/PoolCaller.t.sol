@@ -65,22 +65,6 @@ contract PoolCallerTest is BaseTest {
         assertEq(IUniswapV3Pool(pool).fee(), poolCallee.fee(), "fee");
     }
 
-    function test_FeeGrowthGlobal0X128() public {
-        assertEq(
-            IUniswapV3Pool(pool).feeGrowthGlobal0X128(),
-            poolCallee.feeGrowthGlobal0X128(),
-            "feeGrowthGlobal0X128"
-        );
-    }
-
-    function test_FeeGrowthGlobal1X128() public {
-        assertEq(
-            IUniswapV3Pool(pool).feeGrowthGlobal1X128(),
-            poolCallee.feeGrowthGlobal1X128(),
-            "feeGrowthGlobal1X128"
-        );
-    }
-
     function test_TickSpacing() public {
         assertEq(IUniswapV3Pool(pool).tickSpacing(), poolCallee.tickSpacing(), "tickSpacing");
     }
@@ -120,14 +104,31 @@ contract PoolCallerTest is BaseTest {
         assertEq(tick, tickAsm, "tick");
     }
 
-    function test_Liquidity() public {
-        assertEq(IUniswapV3Pool(pool).liquidity(), poolCallee.liquidity(), "liquidity");
+    function test_FeeGrowthGlobal0X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal0X128(),
+            poolCallee.feeGrowthGlobal0X128(),
+            "feeGrowthGlobal0X128"
+        );
     }
 
-    /// forge-config: default.fuzz.runs = 16
-    /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TickBitmap(int16 wordPos) public {
-        assertEq(IUniswapV3Pool(pool).tickBitmap(wordPos), poolCallee.tickBitmap(wordPos), "tickBitmap");
+    function test_FeeGrowthGlobal1X128() public {
+        assertEq(
+            IUniswapV3Pool(pool).feeGrowthGlobal1X128(),
+            poolCallee.feeGrowthGlobal1X128(),
+            "feeGrowthGlobal1X128"
+        );
+    }
+
+    function test_ProtocolFees() public {
+        (uint128 token0Fee, uint128 token1Fee) = IUniswapV3Pool(pool).protocolFees();
+        (uint128 token0FeeAsm, uint128 token1FeeAsm) = poolCallee.protocolFees();
+        assertEq(token0Fee, token0FeeAsm, "token0Fee");
+        assertEq(token1Fee, token1FeeAsm, "token1Fee");
+    }
+
+    function test_Liquidity() public {
+        assertEq(IUniswapV3Pool(pool).liquidity(), poolCallee.liquidity(), "liquidity");
     }
 
     /// forge-config: default.fuzz.runs = 16
@@ -143,7 +144,7 @@ contract PoolCallerTest is BaseTest {
             uint32 secondsOutside,
             bool initialized
         ) = IUniswapV3Pool(pool).ticks(tick);
-        PoolCaller.Info memory info = poolCallee.ticks(tick);
+        PoolCaller.TickInfo memory info = poolCallee.ticks(tick);
         assertEq(liquidityGross, info.liquidityGross, "liquidityGross");
         assertEq(liquidityNet, info.liquidityNet, "liquidityNet");
         assertEq(feeGrowthOutside0X128, info.feeGrowthOutside0X128, "feeGrowthOutside0X128");
@@ -154,12 +155,67 @@ contract PoolCallerTest is BaseTest {
         assertEq(initialized, info.initialized, "initialized");
     }
 
+    function test_LiquidityNet() public {
+        testFuzz_LiquidityNet(currentTick());
+    }
+
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_LiquidityNet(int24 tick) public {
         (, int128 liquidityNet, , , , , , ) = IUniswapV3Pool(pool).ticks(tick);
         int128 liquidityNetAsm = poolCallee.liquidityNet(tick);
         assertEq(liquidityNet, liquidityNetAsm, "liquidityNet");
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_TickBitmap(int16 wordPos) public {
+        assertEq(IUniswapV3Pool(pool).tickBitmap(wordPos), poolCallee.tickBitmap(wordPos), "tickBitmap");
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Positions(bytes32 key) public {
+        (
+            uint128 _liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        ) = IUniswapV3Pool(pool).positions(key);
+        PoolCaller.PositionInfo memory info = poolCallee.positions(key);
+        assertEq(_liquidity, info.liquidity, "liquidity");
+        assertEq(feeGrowthInside0LastX128, info.feeGrowthInside0LastX128, "feeGrowthInside0LastX128");
+        assertEq(feeGrowthInside1LastX128, info.feeGrowthInside1LastX128, "feeGrowthInside1LastX128");
+        assertEq(tokensOwed0, info.tokensOwed0, "tokensOwed0");
+        assertEq(tokensOwed1, info.tokensOwed1, "tokensOwed1");
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Observations(uint256 index) public {
+        (, , uint16 observationIndex, , , , ) = poolCallee.slot0();
+        index = bound(index, 0, observationIndex - 1);
+        (
+            uint32 blockTimestamp,
+            int56 tickCumulative,
+            uint160 secondsPerLiquidityCumulativeX128,
+            bool initialized
+        ) = IUniswapV3Pool(pool).observations(index);
+        (
+            uint32 blockTimestampAsm,
+            int56 tickCumulativeAsm,
+            uint160 secondsPerLiquidityCumulativeX128Asm,
+            bool initializedAsm
+        ) = poolCallee.observations(index);
+        assertEq(blockTimestamp, blockTimestampAsm, "blockTimestamp");
+        assertEq(tickCumulative, tickCumulativeAsm, "tickCumulative");
+        assertEq(
+            secondsPerLiquidityCumulativeX128,
+            secondsPerLiquidityCumulativeX128Asm,
+            "secondsPerLiquidityCumulativeX128"
+        );
+        assertEq(initialized, initializedAsm, "initialized");
     }
 
     function test_Swap() public {

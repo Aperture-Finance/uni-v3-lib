@@ -16,67 +16,69 @@ using PoolCaller for V3PoolCallee global;
 /// allocation, but you can only use memory starting from the current offset given by the free memory pointer."
 /// according to https://docs.soliditylang.org/en/latest/assembly.html#memory-safety.
 library PoolCaller {
+    /// @dev Makes a staticcall to a pool with only the selector and returns a memory word.
+    function staticcall_0i_1o(V3PoolCallee pool, bytes4 selector) internal view returns (uint256 res) {
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
+                revert(0, 0)
+            }
+            res := mload(0)
+        }
+    }
+
+    /// @dev Makes a staticcall to a pool with only the selector and returns two memory words.
+    function staticcall_0i_2o(V3PoolCallee pool, bytes4 selector) internal view returns (uint256 res0, uint256 res1) {
+        assembly ("memory-safe") {
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We use 0 and 64 to copy up to 64 bytes of return data into the scratch space.
+            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x40)) {
+                revert(0, 0)
+            }
+            res0 := mload(0)
+            res1 := mload(0x20)
+        }
+    }
+
+    /// @dev Makes a staticcall to a pool with one argument.
+    function staticcall_1i_0o(
+        V3PoolCallee pool,
+        bytes4 selector,
+        uint256 arg,
+        uint256 out,
+        uint256 outsize
+    ) internal view {
+        assembly ("memory-safe") {
+            // Write the abi-encoded calldata into memory.
+            mstore(0, selector)
+            mstore(4, arg)
+            // We use 36 because of the length of our calldata.
+            if iszero(staticcall(gas(), pool, 0, 0x24, out, outsize)) {
+                revert(0, 0)
+            }
+        }
+    }
+
     /// @dev Equivalent to `IUniswapV3Pool.fee`
     /// @param pool Uniswap v3 pool
     function fee(V3PoolCallee pool) internal view returns (uint24 f) {
-        bytes4 selector = IUniswapV3PoolImmutables.fee.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            f := mload(0)
-        }
-    }
-
-    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal0X128`
-    /// @param pool Uniswap v3 pool
-    function feeGrowthGlobal0X128(V3PoolCallee pool) internal view returns (uint256 f) {
-        bytes4 selector = IUniswapV3PoolState.feeGrowthGlobal0X128.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            f := mload(0)
-        }
-    }
-
-    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal1X128`
-    /// @param pool Uniswap v3 pool
-    function feeGrowthGlobal1X128(V3PoolCallee pool) internal view returns (uint256 f) {
-        bytes4 selector = IUniswapV3PoolState.feeGrowthGlobal1X128.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            f := mload(0)
+        uint256 res = staticcall_0i_1o(pool, IUniswapV3PoolImmutables.fee.selector);
+        assembly {
+            f := res
         }
     }
 
     /// @dev Equivalent to `IUniswapV3Pool.tickSpacing`
     /// @param pool Uniswap v3 pool
     function tickSpacing(V3PoolCallee pool) internal view returns (int24 ts) {
-        bytes4 selector = IUniswapV3PoolImmutables.tickSpacing.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            ts := mload(0)
+        uint256 res = staticcall_0i_1o(pool, IUniswapV3PoolImmutables.tickSpacing.selector);
+        assembly {
+            ts := res
         }
     }
 
@@ -121,57 +123,46 @@ library PoolCaller {
     /// @dev Equivalent to `(uint160 sqrtPriceX96, int24 tick, , , , , ) = pool.slot0()`
     /// @param pool Uniswap v3 pool
     function sqrtPriceX96AndTick(V3PoolCallee pool) internal view returns (uint160 sqrtPriceX96, int24 tick) {
-        bytes4 selector = IUniswapV3PoolState.slot0.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 64 to copy up to 64 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x40)) {
-                revert(0, 0)
-            }
-            sqrtPriceX96 := mload(0)
-            tick := mload(0x20)
+        (uint256 res0, uint256 res1) = staticcall_0i_2o(pool, IUniswapV3PoolState.slot0.selector);
+        assembly {
+            sqrtPriceX96 := res0
+            tick := res1
+        }
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal0X128`
+    /// @param pool Uniswap v3 pool
+    function feeGrowthGlobal0X128(V3PoolCallee pool) internal view returns (uint256 f) {
+        f = staticcall_0i_1o(pool, IUniswapV3PoolState.feeGrowthGlobal0X128.selector);
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.feeGrowthGlobal1X128`
+    /// @param pool Uniswap v3 pool
+    function feeGrowthGlobal1X128(V3PoolCallee pool) internal view returns (uint256 f) {
+        f = staticcall_0i_1o(pool, IUniswapV3PoolState.feeGrowthGlobal1X128.selector);
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.protocolFees`
+    /// @param pool Uniswap v3 pool
+    function protocolFees(V3PoolCallee pool) internal view returns (uint128 token0, uint128 token1) {
+        (uint256 res0, uint256 res1) = staticcall_0i_2o(pool, IUniswapV3PoolState.protocolFees.selector);
+        assembly {
+            token0 := res0
+            token1 := res1
         }
     }
 
     /// @dev Equivalent to `IUniswapV3Pool.liquidity`
     /// @param pool Uniswap v3 pool
     function liquidity(V3PoolCallee pool) internal view returns (uint128 l) {
-        bytes4 selector = IUniswapV3PoolState.liquidity.selector;
-        assembly ("memory-safe") {
-            // Write the function selector into memory.
-            mstore(0, selector)
-            // We use 4 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 4, 0, 0x20)) {
-                revert(0, 0)
-            }
-            l := mload(0)
-        }
-    }
-
-    /// @dev Equivalent to `IUniswapV3Pool.tickBitmap`
-    /// @param pool Uniswap v3 pool
-    /// @param wordPos The key in the mapping containing the word in which the bit is stored
-    function tickBitmap(V3PoolCallee pool, int16 wordPos) internal view returns (uint256 tickWord) {
-        bytes4 selector = IUniswapV3PoolState.tickBitmap.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
-            // Pad int16 to 32 bytes.
-            mstore(4, signextend(1, wordPos))
-            // We use 36 because of the length of our calldata.
-            // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 0x24, 0, 0x20)) {
-                revert(0, 0)
-            }
-            tickWord := mload(0)
+        uint256 res = staticcall_0i_1o(pool, IUniswapV3PoolState.liquidity.selector);
+        assembly {
+            l := res
         }
     }
 
     // info stored for each initialized individual tick
-    struct Info {
+    struct TickInfo {
         // the total position liquidity that references this tick
         uint128 liquidityGross;
         // amount of net liquidity added (subtracted) when tick is crossed from left to right (right to left),
@@ -195,36 +186,105 @@ library PoolCaller {
 
     /// @dev Equivalent to `IUniswapV3Pool.ticks`
     /// @param pool Uniswap v3 pool
-    function ticks(V3PoolCallee pool, int24 tick) internal view returns (Info memory info) {
-        bytes4 selector = IUniswapV3PoolState.ticks.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
+    function ticks(V3PoolCallee pool, int24 tick) internal view returns (TickInfo memory info) {
+        uint256 _tick;
+        uint256 out;
+        assembly {
             // Pad int24 to 32 bytes.
-            mstore(4, signextend(2, tick))
-            // We use 36 because of the length of our calldata.
-            // We copy up to 256 bytes of return data at info's pointer.
-            if iszero(staticcall(gas(), pool, 0, 0x24, info, 0x100)) {
-                revert(0, 0)
-            }
+            _tick := signextend(2, tick)
+            out := info
         }
+        // We copy up to 256 bytes of return data at info's pointer.
+        staticcall_1i_0o(pool, IUniswapV3PoolState.ticks.selector, _tick, out, 0x100);
     }
 
     /// @dev Equivalent to `( , int128 liquidityNet, , , , , , ) = pool.ticks(tick)`
     /// @param pool Uniswap v3 pool
     function liquidityNet(V3PoolCallee pool, int24 tick) internal view returns (int128 ln) {
-        bytes4 selector = IUniswapV3PoolState.ticks.selector;
-        assembly ("memory-safe") {
-            // Write the abi-encoded calldata into memory.
-            mstore(0, selector)
+        uint256 _tick;
+        assembly {
             // Pad int24 to 32 bytes.
-            mstore(4, signextend(2, tick))
-            // We use 36 because of the length of our calldata.
-            // We use 0 and 64 to copy up to 64 bytes of return data into the scratch space.
-            if iszero(staticcall(gas(), pool, 0, 0x24, 0, 0x40)) {
-                revert(0, 0)
-            }
+            _tick := signextend(2, tick)
+        }
+        // We use 0 and 64 to copy up to 64 bytes of return data into the scratch space.
+        staticcall_1i_0o(pool, IUniswapV3PoolState.ticks.selector, _tick, 0, 0x40);
+        assembly ("memory-safe") {
             ln := mload(0x20)
+        }
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.tickBitmap`
+    /// @param pool Uniswap v3 pool
+    /// @param wordPos The key in the mapping containing the word in which the bit is stored
+    function tickBitmap(V3PoolCallee pool, int16 wordPos) internal view returns (uint256 tickWord) {
+        uint256 _wordPos;
+        assembly {
+            // Pad int16 to 32 bytes.
+            _wordPos := signextend(1, wordPos)
+        }
+        // We use 0 and 32 to copy up to 32 bytes of return data into the scratch space.
+        staticcall_1i_0o(pool, IUniswapV3PoolState.tickBitmap.selector, _wordPos, 0, 0x20);
+        assembly ("memory-safe") {
+            tickWord := mload(0)
+        }
+    }
+
+    // info stored for each user's position
+    struct PositionInfo {
+        // the amount of liquidity owned by this position
+        uint128 liquidity;
+        // fee growth per unit of liquidity as of the last update to liquidity or fees owed
+        uint256 feeGrowthInside0LastX128;
+        uint256 feeGrowthInside1LastX128;
+        // the fees owed to the position owner in token0/token1
+        uint128 tokensOwed0;
+        uint128 tokensOwed1;
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.positions`
+    /// @param pool Uniswap v3 pool
+    /// @param key The position's key is a hash of a preimage composed by the owner, tickLower and tickUpper
+    function positions(V3PoolCallee pool, bytes32 key) internal view returns (PositionInfo memory info) {
+        uint256 out;
+        assembly {
+            out := info
+        }
+        // We copy up to 160 bytes of return data at info's pointer.
+        staticcall_1i_0o(pool, IUniswapV3PoolState.positions.selector, uint256(key), out, 0xa0);
+    }
+
+    /// @dev Equivalent to `IUniswapV3Pool.observations`
+    /// @param pool Uniswap v3 pool
+    /// @param index The element of the observations array to fetch
+    /// @return blockTimestamp The timestamp of the observation,
+    /// @return tickCumulative the tick multiplied by seconds elapsed for the life of the pool as of the observation timestamp,
+    /// @return secondsPerLiquidityCumulativeX128 the seconds per in range liquidity for the life of the pool as of the observation timestamp,
+    /// @return initialized whether the observation has been initialized and the values are safe to use
+    function observations(
+        V3PoolCallee pool,
+        uint256 index
+    )
+        internal
+        view
+        returns (
+            uint32 blockTimestamp,
+            int56 tickCumulative,
+            uint160 secondsPerLiquidityCumulativeX128,
+            bool initialized
+        )
+    {
+        uint256 fmp;
+        assembly ("memory-safe") {
+            // Get a pointer to some free memory.
+            fmp := mload(0x40)
+        }
+        // We copy up to 128 bytes of return data at the free memory pointer.
+        staticcall_1i_0o(pool, IUniswapV3PoolState.observations.selector, index, fmp, 0x80);
+        assembly ("memory-safe") {
+            blockTimestamp := mload(fmp)
+            tickCumulative := mload(add(fmp, 0x20))
+            secondsPerLiquidityCumulativeX128 := mload(add(fmp, 0x40))
+            initialized := mload(add(fmp, 0x60))
         }
     }
 
