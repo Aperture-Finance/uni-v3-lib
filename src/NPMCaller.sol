@@ -64,11 +64,7 @@ library NPMCaller {
     }
 
     /// @dev Makes a staticcall to the NPM with one argument and returns a memory word.
-    function staticcall_1i_1o(
-        INPM npm,
-        bytes4 selector,
-        uint256 arg
-    ) internal view returns (uint256 res) {
+    function staticcall_1i_1o(INPM npm, bytes4 selector, uint256 arg) internal view returns (uint256 res) {
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
             mstore(0, selector)
