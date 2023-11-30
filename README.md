@@ -24,13 +24,13 @@ heuristics and techniques are documented by extensive annotations in the source 
 
 | Library       | Test                       | Original | Optimized | Gas Efficiency |
 |---------------|----------------------------|----------|-----------|----------------|
-| BitMath       | testGas_LSB                | 303324   | 211488    | 30.26%         |
-| BitMath       | testGas_MSB                | 286673   | 229272    | 20.00%         |
-| SqrtPriceMath | testGas_GetAmount0Delta    | 285432   | 266947    | 6.47%          |
-| SqrtPriceMath | testGas_GetAmount1Delta    | 273563   | 219187    | 19.88%         |
-| SwapMath      | testGas_ComputeSwapStep    | 531437   | 430173    | 19.03%         |
-| TickMath      | testGas_GetSqrtRatioAtTick | 168533   | 148160    | 12.09%         |
-| TickMath      | testGas_GetTickAtSqrtRatio | 307781   | 255519    | 16.98%         |
+| BitMath       | testGas_LSB                | 291088   | 193393    | 33.56%         |
+| BitMath       | testGas_MSB                | 274437   | 213472    | 22.21%         |
+| SqrtPriceMath | testGas_GetAmount0Delta    | 280254   | 256572    | 8.45%          |
+| SqrtPriceMath | testGas_GetAmount1Delta    | 268385   | 209212    | 22.05%         |
+| SwapMath      | testGas_ComputeSwapStep    | 526558   | 386504    | 26.60%         |
+| TickMath      | testGas_GetSqrtRatioAtTick | 168547   | 146478    | 13.09%         |
+| TickMath      | testGas_GetTickAtSqrtRatio | 307790   | 252577    | 17.94%         |
 
 *The gas measured is the total gas used by the test transaction, including the gas used to call the test wrapper
 contract. The actual percentage difference in gas for the internal library functions is higher than the numbers shown
@@ -49,6 +49,7 @@ LiquidityMath — "Math library for adding a signed liquidity delta to liquidity
 NPMCaller — "Gas efficient library to call `INonfungiblePositionManager` assuming it exists"
 PoolAddress — "Provides functions for deriving a pool address from the factory, tokens, and the fee"
 PoolCaller — "Gas efficient library to call `IUniswapV3Pool` assuming the pool exists"
+SafeCast — "Library for safely casting between types"
 SqrtPriceMath — "Functions based on Q64.96 sqrt price and liquidity"
 SwapMath — "Computes the result of a swap within ticks"
 TernaryLib — "Library for efficient ternary operations"
@@ -72,16 +73,15 @@ The libraries in this repository have undergone rigorous fuzz testing using Foun
 to the original libraries and that the optimizations have been effective. For testing against the exact same bytecode
 compiled with Solidity 0.7.6, we adopt the following approach:
 
-1. The original Uniswap libraries are exposed by test wrapper contracts in `src/test` and compiled with Hardhat using
-   the Solidity 0.7.6 compiler.
-2. We use the Forge cheatcode `vm.etch` to create these test wrappers using the bytecode from the Hardhat artifacts.
+1. The original Uniswap libraries are exposed by test wrapper contracts in `src/test` and compiled using the Solidity
+   0.7.6 compiler.
+2. We use the Forge cheatcode `deployCode` to create these test wrappers using the bytecode from the artifacts.
 3. We verify the equivalence between the modified libraries and the original ones using Foundry's fuzz testing.
 4. The effectiveness of optimizations can be assessed by tests prefixed by `testGas` in the gas snapshot.
 
-To run the tests, first compile the original Uniswap libraries using Hardhat:
+To run the tests:
 
 ```shell
-yarn hardhat compile
 forge test
 ```
 
