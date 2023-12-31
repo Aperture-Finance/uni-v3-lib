@@ -54,17 +54,13 @@ library SwapMath {
         unchecked {
             bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
             uint256 feeComplement = MAX_FEE_PIPS - feePips;
-            bool exactOut;
+            bool exactOut = amountRemaining < 0;
             uint256 amountRemainingAbs;
-            assembly {
-                // exactOut = 1 if amountRemaining < 0 else 0
-                exactOut := slt(amountRemaining, 0)
-                // mask = -1 if amountRemaining < 0 else 0
-                let mask := sub(0, exactOut)
-                amountRemainingAbs := xor(mask, add(mask, amountRemaining))
-            }
 
             if (!exactOut) {
+                assembly {
+                    amountRemainingAbs := amountRemaining
+                }
                 uint256 amountRemainingLessFee = FullMath.mulDiv(amountRemainingAbs, feeComplement, MAX_FEE_PIPS);
                 amountIn = zeroForOne
                     ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)
@@ -92,6 +88,9 @@ library SwapMath {
                 amountOut = zeroForOne
                     ? SqrtPriceMath.getAmount1Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, false)
                     : SqrtPriceMath.getAmount0Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, false);
+                assembly {
+                    amountRemainingAbs := sub(0, amountRemaining)
+                }
                 if (amountRemainingAbs >= amountOut) {
                     // `amountOut` is capped by the target price
                     sqrtRatioNextX96 = sqrtRatioTargetX96;
