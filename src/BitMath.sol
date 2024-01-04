@@ -21,21 +21,13 @@ library BitMath {
             r := or(r, shl(6, lt(0xffffffffffffffff, shr(r, x))))
             // r += (x >> r) >= 2**32 ? 32 : 0
             r := or(r, shl(5, lt(0xffffffff, shr(r, x))))
-
-            // For the remaining 32 bits, use a De Bruijn lookup.
-            // https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogDeBruijn
-            x := shr(r, x)
-            x := or(x, shr(1, x))
-            x := or(x, shr(2, x))
-            x := or(x, shr(4, x))
-            x := or(x, shr(8, x))
-            x := or(x, shr(16, x))
-
+            r := or(r, shl(4, lt(0xffff, shr(r, x))))
+            r := or(r, shl(3, lt(0xff, shr(r, x))))
             r := or(
                 r,
                 byte(
-                    shr(251, mul(x, shl(224, 0x07c4acdd))),
-                    0x0009010a0d15021d0b0e10121619031e080c141c0f111807131b17061a05041f
+                    and(0x1f, shr(shr(r, x), 0x8421084210842108cc6318c6db6d54be)),
+                    0x0706060506020504060203020504030106050205030304010505030400000000
                 )
             )
         }
@@ -65,8 +57,8 @@ library BitMath {
             r := or(
                 r,
                 byte(
-                    shr(251, mul(shr(r, x), shl(224, 0x077cb531))),
-                    0x00011c021d0e18031e16140f191104081f1b0d17151310071a0c12060b050a09
+                    and(div(0xd76453e0, shr(r, x)), 0x1f),
+                    0x001f0d1e100c1d070f090b19131c1706010e11080a1a141802121b1503160405
                 )
             )
         }
