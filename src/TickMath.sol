@@ -115,7 +115,7 @@ library TickMath {
         /// @solidity memory-safe-assembly
         assembly {
             // if sqrtPriceX96 < MIN_SQRT_RATIO, the `sub` underflows and `gt` is true
-            // if sqrtPriceX96 >= MAX_SQRT_RATIO, sqrtPriceX96 - MIN_SQRT_RATIO > MAX_SQRT_RATIO - MAX_SQRT_RATIO - 1
+            // if sqrtPriceX96 >= MAX_SQRT_RATIO, sqrtPriceX96 - MIN_SQRT_RATIO > MAX_SQRT_RATIO - MIN_SQRT_RATIO - 1
             if gt(sub(sqrtPriceX96, MIN_SQRT_RATIO), MAX_SQRT_RATIO_MINUS_MIN_SQRT_RATIO_MINUS_ONE) {
                 // selector "Error(string)", [0x1c, 0x20)
                 mstore(0, 0x08c379a0)
