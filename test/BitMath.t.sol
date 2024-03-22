@@ -16,12 +16,12 @@ contract BitMathWrapper is IBitMath {
 }
 
 /// @title Test contract for BitMath
-contract BitMathTest is BaseTest {
+contract BitMathTest is Test {
     // Wrapper that exposes the original BitMath library.
     IBitMath internal ogWrapper;
     BitMathWrapper internal wrapper;
 
-    function setUp() public override {
+    function setUp() public {
         ogWrapper = IBitMath(deployCode("BitMathTest.sol"));
         wrapper = new BitMathWrapper();
     }
