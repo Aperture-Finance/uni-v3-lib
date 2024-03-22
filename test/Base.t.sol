@@ -33,14 +33,13 @@ abstract contract BaseTest is Test {
     function setUp() public virtual {}
 
     function createFork() internal {
+        vm.createSelectFork("mainnet", 17000000);
         if (dex == DEX.UniswapV3) {
-            vm.createSelectFork("mainnet", 17000000);
             factory = 0x1F98431c8aD98523631AE4a59f267346ea31F984;
             npm = INonfungiblePositionManager(0xC36442b4a4522E871399CD717aBDD847Ab11FE88);
             fee = 3000;
             pool = IUniswapV3Factory(factory).getPool(WETH, USDC, fee);
         } else {
-            vm.createSelectFork("mainnet", 19488000);
             factory = 0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865;
             npm = INonfungiblePositionManager(0x46A15B0b27311cedF172AB29E4f4766fbE7F4364);
             fee = 500;

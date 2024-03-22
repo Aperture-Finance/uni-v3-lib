@@ -123,7 +123,7 @@ contract NPMCallerTest is BaseTest {
     address internal user;
     uint256 internal pk;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         createFork();
         npmCaller = new NPMCallerWrapper(npm);
         PERMIT_TYPEHASH = npm.PERMIT_TYPEHASH();
@@ -152,14 +152,14 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_BalanceOf(address owner) public {
+    function testFuzz_BalanceOf(address owner) public virtual {
         vm.assume(owner != address(0));
         assertEq(npmCaller.balanceOf(owner), npm.balanceOf(owner));
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public {
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npm.ownerOf(tokenId) returns (address owner) {
             uint256 balance = npmCaller.balanceOf(owner);
@@ -177,12 +177,12 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_OwnerOf(uint256 tokenId) public {
+    function testFuzz_OwnerOf(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npm.ownerOf(tokenId) returns (address owner) {
             assertEq(owner, npmCaller.ownerOf(tokenId), "ownerOf");
-        } catch (bytes memory reason) {
-            vm.expectRevert(reason);
+        } catch {
+            vm.expectRevert("ERC721: owner query for nonexistent token");
             npmCaller.ownerOf(tokenId);
         }
     }
@@ -194,12 +194,12 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_GetApproved(uint256 tokenId) public {
+    function testFuzz_GetApproved(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npm.getApproved(tokenId) returns (address operator) {
             assertEq(operator, npmCaller.getApproved(tokenId), "getApproved");
-        } catch (bytes memory reason) {
-            vm.expectRevert(reason);
+        } catch {
+            vm.expectRevert("ERC721: approved query for nonexistent token");
             npmCaller.getApproved(tokenId);
         }
     }
@@ -229,7 +229,7 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_IsApprovedForAll(uint256 tokenId) public {
+    function testFuzz_IsApprovedForAll(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.ownerOf(tokenId) returns (address owner) {
             assertEq(npmCaller.isApprovedForAll(owner, address(this)), false, "is approved");
@@ -253,7 +253,7 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_PositionsFull(uint256 tokenId) public {
+    function testFuzz_PositionsFull(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positionsFull(tokenId) returns (PositionFull memory pos) {
             (uint96 nonce, , address token0, , , int24 tickLower, , uint128 liquidity, , , , uint128 tokensOwed1) = npm
@@ -270,7 +270,7 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Positions(uint256 tokenId) public {
+    function testFuzz_Positions(uint256 tokenId) public virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positions(tokenId) returns (Position memory pos) {
             (
@@ -385,5 +385,56 @@ contract NPMCallerTest is BaseTest {
         (uint8 v, bytes32 r, bytes32 s) = permitSig(address(_npmCaller), tokenId, deadline);
         _npmCaller.permit(address(_npmCaller), tokenId, deadline, v, r, s);
         assertEq(npm.getApproved(tokenId), address(_npmCaller), "not approved");
+    }
+}
+
+contract NPMCallerPCSTest is NPMCallerTest {
+    function setUp() public override {
+        dex = DEX.PancakeSwapV3;
+        super.setUp();
+    }
+
+    // The following functions are overridden trivially so the in-line fuzz configuration is applied.
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_BalanceOf(address owner) public override {
+        super.testFuzz_BalanceOf(owner);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_GetApproved(uint256 tokenId) public override {
+        super.testFuzz_GetApproved(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_IsApprovedForAll(uint256 tokenId) public override {
+        super.testFuzz_IsApprovedForAll(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_OwnerOf(uint256 tokenId) public override {
+        super.testFuzz_OwnerOf(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Positions(uint256 tokenId) public override {
+        super.testFuzz_Positions(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_PositionsFull(uint256 tokenId) public override {
+        super.testFuzz_PositionsFull(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public override {
+        super.testFuzz_TokenOfOwnerByIndex(tokenId);
     }
 }
