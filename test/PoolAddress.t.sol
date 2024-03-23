@@ -188,6 +188,7 @@ contract PoolAddressTest is BaseTest {
 
 contract PoolAddressPCSTest is PoolAddressTest {
     function setUp() public override {
+        // This is the PancakeSwap V3 *deployer* contract address as this is used instead of the factory in pool address computation.
         factory = 0x41ff9AA7e16B8B1a8a8dc4f0eFacd93D02d071c9;
         ogWrapper = IPoolAddress(deployCode("PoolAddressPancakeSwapV3Test.sol"));
         wrapper = new PoolAddressPancakeSwapV3Wrapper();
