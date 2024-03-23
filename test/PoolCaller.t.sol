@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 import "src/PoolCaller.sol";
 import "./Base.t.sol";
 
@@ -30,7 +31,7 @@ contract PoolCallerTest is BaseTest {
     PoolCallerWrapper internal poolCaller;
     V3PoolCallee internal poolCallee;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         createFork();
         poolCaller = new PoolCallerWrapper(pool);
         poolCallee = V3PoolCallee.wrap(pool);
@@ -69,7 +70,7 @@ contract PoolCallerTest is BaseTest {
         assertEq(IUniswapV3Pool(pool).tickSpacing(), poolCallee.tickSpacing(), "tickSpacing");
     }
 
-    function test_Slot0() public {
+    function test_Slot0() public virtual {
         (
             uint160 sqrtPriceX96,
             int24 tick,
@@ -97,7 +98,7 @@ contract PoolCallerTest is BaseTest {
         assertEq(unlocked, unlockedAsm, "unlocked");
     }
 
-    function test_SqrtPriceX96AndTick() public {
+    function test_SqrtPriceX96AndTick() public virtual {
         (uint160 sqrtPriceX96, int24 tick, , , , , ) = IUniswapV3Pool(pool).slot0();
         (uint160 sqrtPriceX96Asm, int24 tickAsm) = V3PoolCallee.wrap(pool).sqrtPriceX96AndTick();
         assertEq(sqrtPriceX96, sqrtPriceX96Asm, "sqrtPriceX96");
@@ -133,7 +134,7 @@ contract PoolCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Ticks(int24 tick) public {
+    function testFuzz_Ticks(int24 tick) public virtual {
         (
             uint128 liquidityGross,
             int128 liquidityNet,
@@ -161,7 +162,7 @@ contract PoolCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_LiquidityNet(int24 tick) public {
+    function testFuzz_LiquidityNet(int24 tick) public virtual {
         (, int128 liquidityNet, , , , , , ) = IUniswapV3Pool(pool).ticks(tick);
         int128 liquidityNetAsm = poolCallee.liquidityNet(tick);
         assertEq(liquidityNet, liquidityNetAsm, "liquidityNet");
@@ -169,13 +170,13 @@ contract PoolCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TickBitmap(int16 wordPos) public {
+    function testFuzz_TickBitmap(int16 wordPos) public virtual {
         assertEq(IUniswapV3Pool(pool).tickBitmap(wordPos), poolCallee.tickBitmap(wordPos), "tickBitmap");
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Positions(bytes32 key) public {
+    function testFuzz_Positions(bytes32 key) public virtual {
         (
             uint128 _liquidity,
             uint256 feeGrowthInside0LastX128,
@@ -193,7 +194,7 @@ contract PoolCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Observations(uint256 index) public {
+    function testFuzz_Observations(uint256 index) public virtual {
         (, , uint16 observationIndex, , , , ) = poolCallee.slot0();
         index = bound(index, 0, observationIndex - 1);
         (
@@ -233,7 +234,7 @@ contract PoolCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Swap(bool zeroForOne, uint256 amountSpecified, bytes memory data) public {
+    function testFuzz_Swap(bool zeroForOne, uint256 amountSpecified, bytes memory data) public virtual {
         amountSpecified = prepSwap(zeroForOne, amountSpecified);
         (int256 amount0, int256 amount1) = poolCallee.swap(
             address(this),
@@ -253,5 +254,89 @@ contract PoolCallerTest is BaseTest {
     function testRevert_SPL_Swap() public {
         vm.expectRevert(bytes("SPL"));
         poolCaller.swap(address(this), true, int256(1), TickMath.MIN_SQRT_RATIO, new bytes(0));
+    }
+}
+
+contract PoolCallerPCSTest is PoolCallerTest {
+    function setUp() public override {
+        dex = DEX.PancakeSwapV3;
+        createFork();
+        super.setUp();
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_LiquidityNet(int24 tick) public override {
+        super.testFuzz_LiquidityNet(tick);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Positions(bytes32 key) public override {
+        super.testFuzz_Positions(key);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Swap(bool zeroForOne, uint256 amountSpecified, bytes memory data) public override {
+        super.testFuzz_Swap(zeroForOne, amountSpecified, data);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_TickBitmap(int16 wordPos) public override {
+        super.testFuzz_TickBitmap(wordPos);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Ticks(int24 tick) public override {
+        super.testFuzz_Ticks(tick);
+    }
+
+    /// forge-config: default.fuzz.runs = 1
+    /// forge-config: ci.fuzz.runs = 1
+    function testFuzz_Observations(uint256 index) public override {
+        // Skip this test as the PancakeSwap V3 pool did not have any observations at the fork block.
+    }
+
+    function test_Slot0() public override {
+        (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            ,
+
+        ) = IPancakeV3Pool(pool).slot0();
+        (
+            uint160 sqrtPriceX96Asm,
+            int24 tickAsm,
+            uint16 observationIndexAsm,
+            uint16 observationCardinalityAsm,
+            uint16 observationCardinalityNextAsm,
+            ,
+
+        ) = poolCallee.slot0();
+        assertEq(sqrtPriceX96, sqrtPriceX96Asm, "sqrtPriceX96");
+        assertEq(tick, tickAsm, "tick");
+        assertEq(observationIndex, observationIndexAsm, "observationIndex");
+        assertEq(observationCardinality, observationCardinalityAsm, "observationCardinality");
+        assertEq(observationCardinalityNext, observationCardinalityNextAsm, "observationCardinalityNext");
+    }
+
+    function test_SqrtPriceX96AndTick() public override {
+        (uint160 sqrtPriceX96, int24 tick, , , , , ) = IPancakeV3Pool(pool).slot0();
+        (uint160 sqrtPriceX96Asm, int24 tickAsm) = V3PoolCallee.wrap(pool).sqrtPriceX96AndTick();
+        assertEq(sqrtPriceX96, sqrtPriceX96Asm, "sqrtPriceX96");
+        assertEq(tick, tickAsm, "tick");
+    }
+
+    /// @dev Pay pool to finish swap
+    using SafeTransferLib for address;
+    function pancakeV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata) external {
+        if (amount0Delta > 0) token0.safeTransfer(pool, uint256(amount0Delta));
+        if (amount1Delta > 0) token1.safeTransfer(pool, uint256(amount1Delta));
     }
 }

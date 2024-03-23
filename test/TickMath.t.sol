@@ -16,12 +16,12 @@ contract TickMathWrapper is ITickMath {
 }
 
 /// @dev Test assembly optimized `TickMath` against the original.
-contract TickMathTest is BaseTest {
+contract TickMathTest is Test {
     // Wrapper that exposes the original LiquidityMath library.
     ITickMath internal ogWrapper;
     TickMathWrapper internal wrapper;
 
-    function setUp() public override {
+    function setUp() public {
         ogWrapper = ITickMath(deployCode("TickMathTest.sol"));
         wrapper = new TickMathWrapper();
     }
