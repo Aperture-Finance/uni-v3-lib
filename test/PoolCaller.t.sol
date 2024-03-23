@@ -300,6 +300,8 @@ contract PoolCallerPCSTest is PoolCallerTest {
         // Skip this test as the PancakeSwap V3 pool did not have any observations at the fork block.
     }
 
+    /// @dev Note that PancakeSwap V3 changed the slot0 struct, specifically changed `feeProtocol` from uint8 to uint32.
+    // Therefore, `poolCallee.slot0()` is not able to return the correct value for `feeProtocol` or `unlocked`.
     function test_Slot0() public override {
         (
             uint160 sqrtPriceX96,
