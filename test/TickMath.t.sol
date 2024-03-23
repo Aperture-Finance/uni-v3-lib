@@ -49,7 +49,7 @@ contract TickMathTest is Test {
     }
 
     /// @notice Test the equivalence of the original and new `getSqrtRatioAtTick`
-    function testFuzz_GetSqrtRatioAtTick(int24 tick) public {
+    function testFuzz_GetSqrtRatioAtTick(int24 tick) public view {
         tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK));
         uint160 sqrtPriceX96 = TickMath.getSqrtRatioAtTick(tick);
         assertEq(tick, TickMath.getTickAtSqrtRatio(sqrtPriceX96));
@@ -82,7 +82,7 @@ contract TickMathTest is Test {
     }
 
     /// @notice Test the equivalence of `getTickAtSqrtRatio` and the original library
-    function testFuzz_GetTickAtSqrtRatio(uint160 sqrtPriceX96) public {
+    function testFuzz_GetTickAtSqrtRatio(uint160 sqrtPriceX96) public view {
         sqrtPriceX96 = uint160(bound(sqrtPriceX96, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO - 1));
         assertEq(TickMath.getTickAtSqrtRatio(sqrtPriceX96), ogWrapper.getTickAtSqrtRatio(sqrtPriceX96));
     }

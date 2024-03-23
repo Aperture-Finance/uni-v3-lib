@@ -42,7 +42,7 @@ contract SafeCastTest is Test {
         SafeCast.toInt128(-int256(1 << 127) - 1);
     }
 
-    function testToInt128() public {
+    function testToInt128() public pure {
         assertEq(SafeCast.toInt128(uint256(int256(type(int128).max))), type(int128).max);
     }
 
@@ -69,7 +69,7 @@ contract SafeCastTest is Test {
         SafeCast.toInt256(1 << 255);
     }
 
-    function testToInt256() public {
+    function testToInt256() public pure {
         assertEq(SafeCast.toInt256(uint256(type(int256).max)), type(int256).max);
     }
 
