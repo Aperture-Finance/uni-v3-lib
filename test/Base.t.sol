@@ -23,6 +23,8 @@ abstract contract BaseTest is Test {
     uint24 internal fee;
     address internal pool;
     int24 internal tickSpacing;
+    // `dex` is used to determine which DEX to use for the test.
+    // The default value is `UniswapV3` as that is the zero value.
     BaseTest.DEX internal dex;
 
     enum DEX {
