@@ -264,6 +264,8 @@ contract PoolCallerPCSTest is PoolCallerTest {
         super.setUp();
     }
 
+    // The following functions are overridden trivially so the in-line fuzz configuration is applied.
+
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_LiquidityNet(int24 tick) public override {
