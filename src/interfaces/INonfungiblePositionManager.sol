@@ -166,3 +166,11 @@ interface INonfungiblePositionManager is
     /// @param tokenId The ID of the token that is being burned
     function burn(uint256 tokenId) external payable;
 }
+
+/// @title Non-fungible token for PancakeSwap V3 positions
+/// @notice Wraps PCSV3 positions in a non-fungible token interface which allows for them to be transferred
+/// and authorized.
+interface IPCSV3NonfungiblePositionManager is INonfungiblePositionManager {
+    /// @return Returns the address of the PancakeSwap V3 deployer
+    function deployer() external view returns (address);
+}

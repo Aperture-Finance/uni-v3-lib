@@ -39,7 +39,7 @@ contract TickBitmapTest is BaseTest {
         wrapper = new TickBitmapWrapper();
     }
 
-    function testFuzz_Position(int24 tick) public {
+    function testFuzz_Position(int24 tick) public pure {
         int16 wordPos;
         uint8 bitPos;
         assembly {
@@ -51,7 +51,7 @@ contract TickBitmapTest is BaseTest {
         assertEq(bitPos, uint8(int8(tick % 256)));
     }
 
-    function testFuzz_Compress(int24 tick, int24 _tickSpacing) public {
+    function testFuzz_Compress(int24 tick, int24 _tickSpacing) public pure {
         _tickSpacing = int24(bound(_tickSpacing, 1, 200));
         int24 compressed = tick / _tickSpacing;
         if (tick < 0 && tick % _tickSpacing != 0) compressed--;
