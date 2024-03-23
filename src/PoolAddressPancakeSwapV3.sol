@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.5.0;
 
-import "./PoolAddress.sol";
+import "./PoolKey.sol";
 import "./TernaryLib.sol";
 
 /// @title Provides functions for deriving a pool address from the deployer, tokens, and the fee

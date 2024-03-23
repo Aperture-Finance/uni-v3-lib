@@ -32,11 +32,7 @@ interface IPoolAddressWrapper is IPoolAddress {
 
 /// @dev Expose internal functions to test the PoolAddress library.
 contract PoolAddressWrapper is IPoolAddressWrapper {
-    function getPoolKey(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) external pure returns (PoolKey memory key) {
+    function getPoolKey(address tokenA, address tokenB, uint24 fee) external pure returns (PoolKey memory key) {
         key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
     }
 
@@ -77,11 +73,7 @@ contract PoolAddressWrapper is IPoolAddressWrapper {
 
 /// @dev Expose internal functions to test the PoolAddressPancakeSwapV3 library.
 contract PoolAddressPancakeSwapV3Wrapper is IPoolAddressWrapper {
-    function getPoolKey(
-        address tokenA,
-        address tokenB,
-        uint24 fee
-    ) external pure returns (PoolKey memory key) {
+    function getPoolKey(address tokenA, address tokenB, uint24 fee) external pure returns (PoolKey memory key) {
         key = PoolAddressPancakeSwapV3.getPoolKey(tokenA, tokenB, fee);
     }
 

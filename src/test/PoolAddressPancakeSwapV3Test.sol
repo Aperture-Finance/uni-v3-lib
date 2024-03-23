@@ -11,7 +11,7 @@ contract PoolAddressPancakeSwapV3Test is IPoolAddress {
         address tokenA,
         address tokenB,
         uint24 fee
-    ) external pure override returns (IPoolKey memory key) {
+    ) external pure override returns (PoolKey memory key) {
         PoolAddress.PoolKey memory _key = PoolAddress.getPoolKey(tokenA, tokenB, fee);
         /// @solidity memory-safe-assembly
         assembly {
@@ -19,7 +19,7 @@ contract PoolAddressPancakeSwapV3Test is IPoolAddress {
         }
     }
 
-    function computeAddress(address deployer, IPoolKey memory key) external pure override returns (address pool) {
+    function computeAddress(address deployer, PoolKey memory key) external pure override returns (address pool) {
         PoolAddress.PoolKey memory _key;
         /// @solidity memory-safe-assembly
         assembly {

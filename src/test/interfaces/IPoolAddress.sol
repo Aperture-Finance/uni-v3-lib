@@ -2,7 +2,7 @@
 pragma solidity >=0.5.0;
 pragma abicoder v2;
 
-import "../../PoolAddress.sol";
+import "../../PoolKey.sol";
 
 interface IPoolAddress {
     function getPoolKey(address tokenA, address tokenB, uint24 fee) external pure returns (PoolKey memory);
