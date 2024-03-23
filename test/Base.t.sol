@@ -47,7 +47,7 @@ abstract contract BaseTest is Test {
         return TickBitmap.compress(tick, _tickSpacing) * _tickSpacing;
     }
 
-    function boundUint160(uint160 x) internal view returns (uint160) {
+    function boundUint160(uint160 x) internal pure returns (uint160) {
         return uint160(bound(x, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO));
     }
 
