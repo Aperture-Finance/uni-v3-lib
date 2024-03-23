@@ -34,7 +34,7 @@ contract TickBitmapTest is BaseTest {
     ITickBitmap internal ogWrapper;
     TickBitmapWrapper internal wrapper;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         ogWrapper = ITickBitmap(deployCode("TickBitmapTest.sol"));
         wrapper = new TickBitmapWrapper();
     }
@@ -130,11 +130,12 @@ contract TickBitmapTest is BaseTest {
     /// @notice Test nextInitializedTickWithinOneWord in a fork
     function test_NextInitializedTickWithinOneWord_LTE() public {
         createFork();
+        uint256 numIters = dex == DEX.PancakeSwapV3 ? 10 : 256;
         int24 tick = currentTick();
         int16 wordPos = type(int16).min;
         uint256 tickWord;
         unchecked {
-            for (uint256 counter; counter < 256; ++counter) {
+            for (uint256 counter; counter < numIters; ++counter) {
                 (tick, , wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
                     V3PoolCallee.wrap(pool),
                     tick - 1,
@@ -150,11 +151,12 @@ contract TickBitmapTest is BaseTest {
     /// @notice Test nextInitializedTickWithinOneWord in a fork
     function test_NextInitializedTickWithinOneWord_GT() public {
         createFork();
+        uint256 numIters = dex == DEX.PancakeSwapV3 ? 10 : 256;
         int24 tick = currentTick();
         int16 wordPos = type(int16).min;
         uint256 tickWord;
         unchecked {
-            for (uint256 counter; counter < 256; ++counter) {
+            for (uint256 counter; counter < numIters; ++counter) {
                 (tick, , wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
                     V3PoolCallee.wrap(pool),
                     tick,
@@ -170,11 +172,12 @@ contract TickBitmapTest is BaseTest {
     /// @notice Test nextInitializedTick in a fork
     function test_NextInitializedTick_LTE() public {
         createFork();
+        uint256 numIters = dex == DEX.PancakeSwapV3 ? 10 : 256;
         int24 tick = currentTick();
         bool initialized;
         int16 wordPos = type(int16).min;
         uint256 tickWord;
-        for (uint256 counter; counter < 256; ) {
+        for (uint256 counter; counter < numIters; ) {
             (tick, initialized, wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
                 V3PoolCallee.wrap(pool),
                 tick - 1,
@@ -192,7 +195,7 @@ contract TickBitmapTest is BaseTest {
         int24 finalTick = tick;
         tick = currentTick();
         wordPos = type(int16).min;
-        for (uint256 counter; counter < 256; ++counter) {
+        for (uint256 counter; counter < numIters; ++counter) {
             (tick, wordPos, tickWord) = TickBitmap.nextInitializedTick(
                 V3PoolCallee.wrap(pool),
                 tick - 1,
@@ -208,11 +211,12 @@ contract TickBitmapTest is BaseTest {
     /// @notice Test nextInitializedTick in a fork
     function test_NextInitializedTick_GT() public {
         createFork();
+        uint256 numIters = dex == DEX.PancakeSwapV3 ? 10 : 256;
         int24 tick = currentTick();
         bool initialized;
         int16 wordPos = type(int16).min;
         uint256 tickWord;
-        for (uint256 counter; counter < 256; ) {
+        for (uint256 counter; counter < numIters; ) {
             (tick, initialized, wordPos, tickWord) = TickBitmap.nextInitializedTickWithinOneWord(
                 V3PoolCallee.wrap(pool),
                 tick,
@@ -230,7 +234,7 @@ contract TickBitmapTest is BaseTest {
         int24 finalTick = tick;
         tick = currentTick();
         wordPos = type(int16).min;
-        for (uint256 counter; counter < 256; ++counter) {
+        for (uint256 counter; counter < numIters; ++counter) {
             (tick, wordPos, tickWord) = TickBitmap.nextInitializedTick(
                 V3PoolCallee.wrap(pool),
                 tick,
@@ -241,5 +245,12 @@ contract TickBitmapTest is BaseTest {
             );
         }
         assertEq(tick, finalTick);
+    }
+}
+
+contract TickBitmapPCSTest is TickBitmapTest {
+    function setUp() public override {
+        dex = DEX.PancakeSwapV3;
+        super.setUp();
     }
 }

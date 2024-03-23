@@ -1,4 +1,5 @@
 @openzeppelin/=node_modules/@openzeppelin/
+@pancakeswap/=node_modules/@pancakeswap/
 @uniswap/=node_modules/@uniswap/
 forge-std/=lib/forge-std/src/
 solady/=node_modules/solady/

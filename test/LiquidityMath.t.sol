@@ -12,12 +12,12 @@ contract LiquidityMathWrapper is ILiquidityMath {
 }
 
 /// @dev Tests for FullMath
-contract LiquidityMathTest is BaseTest {
+contract LiquidityMathTest is Test {
     // Wrapper that exposes the original LiquidityMath library.
     ILiquidityMath internal ogWrapper;
     LiquidityMathWrapper internal wrapper;
 
-    function setUp() public override {
+    function setUp() public {
         ogWrapper = ILiquidityMath(deployCode("LiquidityMathTest.sol"));
         wrapper = new LiquidityMathWrapper();
     }

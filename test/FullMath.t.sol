@@ -8,11 +8,11 @@ import {FullMath} from "src/FullMath.sol";
 import "./Base.t.sol";
 
 /// @dev Tests for FullMath
-contract FullMathTest is BaseTest {
+contract FullMathTest is Test {
     // Wrapper that exposes the original FullMath library.
     IFullMath internal wrapper;
 
-    function setUp() public override {
+    function setUp() public {
         wrapper = IFullMath(deployCode("FullMathTest.sol"));
     }
 

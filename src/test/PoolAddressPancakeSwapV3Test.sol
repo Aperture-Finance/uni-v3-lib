@@ -2,11 +2,11 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "@uniswap/v3-periphery/contracts/libraries/PoolAddress.sol";
+import "@pancakeswap/v3-periphery/contracts/libraries/PoolAddress.sol";
 import "./interfaces/IPoolAddress.sol";
 
 /// @dev Expose internal functions to test the PoolAddress library.
-contract PoolAddressTest is IPoolAddress {
+contract PoolAddressPancakeSwapV3Test is IPoolAddress {
     function getPoolKey(
         address tokenA,
         address tokenB,
@@ -19,12 +19,12 @@ contract PoolAddressTest is IPoolAddress {
         }
     }
 
-    function computeAddress(address factory, PoolKey memory key) external pure override returns (address pool) {
+    function computeAddress(address deployer, PoolKey memory key) external pure override returns (address pool) {
         PoolAddress.PoolKey memory _key;
         /// @solidity memory-safe-assembly
         assembly {
             _key := key
         }
-        return PoolAddress.computeAddress(factory, _key);
+        return PoolAddress.computeAddress(deployer, _key);
     }
 }
