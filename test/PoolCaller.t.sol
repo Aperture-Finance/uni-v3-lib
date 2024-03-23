@@ -56,17 +56,17 @@ contract PoolCallerTest is BaseTest {
     }
 
     /// @dev Ensure that the swap is successful
-    function assertSwapSuccess(bool zeroForOne, uint256 amountOut) internal {
+    function assertSwapSuccess(bool zeroForOne, uint256 amountOut) internal view {
         (address tokenIn, address tokenOut) = zeroForOne ? (token0, token1) : (token1, token0);
         assertEq(IERC20(tokenIn).balanceOf(address(this)), 0, "amountIn not exhausted");
         assertEq(IERC20(tokenOut).balanceOf(address(this)), amountOut, "amountOut mismatch");
     }
 
-    function test_Fee() public {
+    function test_Fee() public view {
         assertEq(IUniswapV3Pool(pool).fee(), poolCallee.fee(), "fee");
     }
 
-    function test_TickSpacing() public {
+    function test_TickSpacing() public view {
         assertEq(IUniswapV3Pool(pool).tickSpacing(), poolCallee.tickSpacing(), "tickSpacing");
     }
 
@@ -105,7 +105,7 @@ contract PoolCallerTest is BaseTest {
         assertEq(tick, tickAsm, "tick");
     }
 
-    function test_FeeGrowthGlobal0X128() public {
+    function test_FeeGrowthGlobal0X128() public view {
         assertEq(
             IUniswapV3Pool(pool).feeGrowthGlobal0X128(),
             poolCallee.feeGrowthGlobal0X128(),
@@ -113,7 +113,7 @@ contract PoolCallerTest is BaseTest {
         );
     }
 
-    function test_FeeGrowthGlobal1X128() public {
+    function test_FeeGrowthGlobal1X128() public view {
         assertEq(
             IUniswapV3Pool(pool).feeGrowthGlobal1X128(),
             poolCallee.feeGrowthGlobal1X128(),
@@ -121,14 +121,14 @@ contract PoolCallerTest is BaseTest {
         );
     }
 
-    function test_ProtocolFees() public {
+    function test_ProtocolFees() public view {
         (uint128 token0Fee, uint128 token1Fee) = IUniswapV3Pool(pool).protocolFees();
         (uint128 token0FeeAsm, uint128 token1FeeAsm) = poolCallee.protocolFees();
         assertEq(token0Fee, token0FeeAsm, "token0Fee");
         assertEq(token1Fee, token1FeeAsm, "token1Fee");
     }
 
-    function test_Liquidity() public {
+    function test_Liquidity() public view {
         assertEq(IUniswapV3Pool(pool).liquidity(), poolCallee.liquidity(), "liquidity");
     }
 
@@ -302,7 +302,7 @@ contract PoolCallerPCSTest is PoolCallerTest {
 
     /// @dev Note that PancakeSwap V3 changed the slot0 struct, specifically changed `feeProtocol` from uint8 to uint32.
     // Therefore, `poolCallee.slot0()` is not able to return the correct value for `feeProtocol` or `unlocked`.
-    function test_Slot0() public override {
+    function test_Slot0() public view override {
         (
             uint160 sqrtPriceX96,
             int24 tick,
@@ -328,7 +328,7 @@ contract PoolCallerPCSTest is PoolCallerTest {
         assertEq(observationCardinalityNext, observationCardinalityNextAsm, "observationCardinalityNext");
     }
 
-    function test_SqrtPriceX96AndTick() public override {
+    function test_SqrtPriceX96AndTick() public view override {
         (uint160 sqrtPriceX96, int24 tick, , , , , ) = IPancakeV3Pool(pool).slot0();
         (uint160 sqrtPriceX96Asm, int24 tickAsm) = V3PoolCallee.wrap(pool).sqrtPriceX96AndTick();
         assertEq(sqrtPriceX96, sqrtPriceX96Asm, "sqrtPriceX96");

@@ -152,14 +152,14 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_BalanceOf(address owner) public virtual {
+    function testFuzz_BalanceOf(address owner) public view virtual {
         vm.assume(owner != address(0));
         assertEq(npmCaller.balanceOf(owner), npm.balanceOf(owner));
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public virtual {
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public view virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npm.ownerOf(tokenId) returns (address owner) {
             uint256 balance = npmCaller.balanceOf(owner);
@@ -171,7 +171,7 @@ contract NPMCallerTest is BaseTest {
         }
     }
 
-    function test_TotalSupply() public {
+    function test_TotalSupply() public view {
         assertEq(npmCaller.totalSupply(), npm.totalSupply());
     }
 
@@ -218,7 +218,7 @@ contract NPMCallerTest is BaseTest {
         assertEq(npm.getApproved(tokenId), address(this), "approve");
     }
 
-    function test_IsApprovedForAll() public {
+    function test_IsApprovedForAll() public view {
         address owner = npm.ownerOf(npm.totalSupply());
         assertEq(
             npmCaller.isApprovedForAll(owner, address(this)),
@@ -247,13 +247,13 @@ contract NPMCallerTest is BaseTest {
         assertEq(npm.isApprovedForAll(address(_npmCaller), address(this)), true, "setApprovalForAll");
     }
 
-    function test_Factory() public {
+    function test_Factory() public view {
         assertEq(npmCaller.factory(), npm.factory(), "factory");
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_PositionsFull(uint256 tokenId) public virtual {
+    function testFuzz_PositionsFull(uint256 tokenId) public view virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positionsFull(tokenId) returns (PositionFull memory pos) {
             (uint96 nonce, , address token0, , , int24 tickLower, , uint128 liquidity, , , , uint128 tokensOwed1) = npm
@@ -270,7 +270,7 @@ contract NPMCallerTest is BaseTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Positions(uint256 tokenId) public virtual {
+    function testFuzz_Positions(uint256 tokenId) public view virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positions(tokenId) returns (Position memory pos) {
             (
@@ -398,7 +398,7 @@ contract NPMCallerPCSTest is NPMCallerTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_BalanceOf(address owner) public override {
+    function testFuzz_BalanceOf(address owner) public view override {
         super.testFuzz_BalanceOf(owner);
     }
 
@@ -422,19 +422,19 @@ contract NPMCallerPCSTest is NPMCallerTest {
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_Positions(uint256 tokenId) public override {
+    function testFuzz_Positions(uint256 tokenId) public view override {
         super.testFuzz_Positions(tokenId);
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_PositionsFull(uint256 tokenId) public override {
+    function testFuzz_PositionsFull(uint256 tokenId) public view override {
         super.testFuzz_PositionsFull(tokenId);
     }
 
     /// forge-config: default.fuzz.runs = 16
     /// forge-config: ci.fuzz.runs = 16
-    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public override {
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public view override {
         super.testFuzz_TokenOfOwnerByIndex(tokenId);
     }
 }

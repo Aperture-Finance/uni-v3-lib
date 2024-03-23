@@ -26,12 +26,12 @@ contract BitMathTest is Test {
         wrapper = new BitMathWrapper();
     }
 
-    function testFuzz_MSB(uint256 x) public {
+    function testFuzz_MSB(uint256 x) public view {
         x = bound(x, 1, type(uint256).max);
         assertEq(wrapper.mostSignificantBit(x), ogWrapper.mostSignificantBit(x));
     }
 
-    function testFuzz_LSB(uint256 x) public {
+    function testFuzz_LSB(uint256 x) public view {
         x = bound(x, 1, type(uint256).max);
         assertEq(wrapper.leastSignificantBit(x), ogWrapper.leastSignificantBit(x));
     }

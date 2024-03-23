@@ -125,7 +125,7 @@ contract PoolAddressTest is BaseTest {
     }
 
     /// @notice Test `computeAddress` against the original Uniswap library.
-    function testFuzz_ComputeAddress(address tokenA, address tokenB, uint24 fee) public {
+    function testFuzz_ComputeAddress(address tokenA, address tokenB, uint24 fee) public view {
         vm.assume(tokenA != tokenB);
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
@@ -145,7 +145,7 @@ contract PoolAddressTest is BaseTest {
     }
 
     /// @notice Test `computeAddress` against the original Uniswap library.
-    function testFuzz_ComputeAddressFromKey(address tokenA, address tokenB, uint24 fee) public {
+    function testFuzz_ComputeAddressFromKey(address tokenA, address tokenB, uint24 fee) public view {
         vm.assume(tokenA != tokenB);
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
@@ -155,7 +155,7 @@ contract PoolAddressTest is BaseTest {
     }
 
     /// @notice Test `computeAddressCalldata` against other implementation.
-    function testFuzz_ComputeAddressCalldata(address tokenA, address tokenB, uint24 fee) public {
+    function testFuzz_ComputeAddressCalldata(address tokenA, address tokenB, uint24 fee) public view {
         vm.assume(tokenA != tokenB);
         if (tokenA > tokenB) (tokenA, tokenB) = (tokenB, tokenA);
         assertEq(
