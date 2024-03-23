@@ -12,7 +12,6 @@ sparse_mode = true
 
 verbosity = 2
 ffi = false
-fs_permissions = [{ access = "read", path = "./out" }]
 
 [fuzz]
 runs = 65536
