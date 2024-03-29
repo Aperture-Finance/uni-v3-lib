@@ -3,6 +3,7 @@
 // https://blog.soliditylang.org/2021/09/27/user-defined-value-types/
 pragma solidity >=0.8.8;
 
+import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
 import "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 type V3PoolCallee is address;
@@ -100,6 +101,44 @@ library PoolCaller {
         )
     {
         bytes4 selector = IUniswapV3PoolState.slot0.selector;
+        assembly ("memory-safe") {
+            // Get a pointer to some free memory.
+            let fmp := mload(0x40)
+            // Write the function selector into memory.
+            mstore(0, selector)
+            // We use 4 because of the length of our calldata.
+            // We copy up to 224 bytes of return data after fmp.
+            if iszero(staticcall(gas(), pool, 0, 4, fmp, 0xe0)) {
+                revert(0, 0)
+            }
+            sqrtPriceX96 := mload(fmp)
+            tick := mload(add(fmp, 0x20))
+            observationIndex := mload(add(fmp, 0x40))
+            observationCardinality := mload(add(fmp, 0x60))
+            observationCardinalityNext := mload(add(fmp, 0x80))
+            feeProtocol := mload(add(fmp, 0xa0))
+            unlocked := mload(add(fmp, 0xc0))
+        }
+    }
+
+    /// @dev Equivalent to `IPancakeV3Pool.slot0`
+    /// @param pool PancakeSwap v3 pool
+    function pancakeSwapV3Slot0(
+        V3PoolCallee pool
+    )
+        internal
+        view
+        returns (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint32 feeProtocol,
+            bool unlocked
+        )
+    {
+        bytes4 selector = IPancakeV3PoolState.slot0.selector;
         assembly ("memory-safe") {
             // Get a pointer to some free memory.
             let fmp := mload(0x40)

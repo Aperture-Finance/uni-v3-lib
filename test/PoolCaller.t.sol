@@ -330,6 +330,34 @@ contract PoolCallerPCSTest is PoolCallerTest {
         assertEq(observationCardinalityNext, observationCardinalityNextAsm, "observationCardinalityNext");
     }
 
+    function test_PancakeSwapV3Slot0() public view {
+        (
+            uint160 sqrtPriceX96,
+            int24 tick,
+            uint16 observationIndex,
+            uint16 observationCardinality,
+            uint16 observationCardinalityNext,
+            uint32 feeProtocol,
+            bool unlocked
+        ) = IPancakeV3Pool(pool).slot0();
+        (
+            uint160 sqrtPriceX96Asm,
+            int24 tickAsm,
+            uint16 observationIndexAsm,
+            uint16 observationCardinalityAsm,
+            uint16 observationCardinalityNextAsm,
+            uint32 feeProtocolAsm,
+            bool unlockedAsm
+        ) = poolCallee.pancakeSwapV3Slot0();
+        assertEq(sqrtPriceX96, sqrtPriceX96Asm, "sqrtPriceX96");
+        assertEq(tick, tickAsm, "tick");
+        assertEq(observationIndex, observationIndexAsm, "observationIndex");
+        assertEq(observationCardinality, observationCardinalityAsm, "observationCardinality");
+        assertEq(observationCardinalityNext, observationCardinalityNextAsm, "observationCardinalityNext");
+        assertEq(feeProtocol, feeProtocolAsm, "feeProtocol");
+        assertEq(unlocked, unlockedAsm, "unlocked");
+    }
+
     function test_SqrtPriceX96AndTick() public view override {
         (uint160 sqrtPriceX96, int24 tick, , , , , ) = IPancakeV3Pool(pool).slot0();
         (uint160 sqrtPriceX96Asm, int24 tickAsm) = V3PoolCallee.wrap(pool).sqrtPriceX96AndTick();
