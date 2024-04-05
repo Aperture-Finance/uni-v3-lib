@@ -23,15 +23,15 @@ library TickBitmap {
         }
     }
 
-    /// @notice Computes the word position and the bit position given a tick.
+    /// @notice Computes the position in the mapping where the initialized bit for a tick lives
     /// @param tick The tick for which to compute the position
     /// @return wordPos The key in the mapping containing the word in which the bit is stored
     /// @return bitPos The bit position in the word where the flag is stored
-    function position(int24 tick) private pure returns (int16 wordPos, uint8 bitPos) {
+    function position(int24 tick) internal pure returns (int16 wordPos, uint8 bitPos) {
         assembly {
             // signed arithmetic shift right
             wordPos := sar(8, tick)
-            bitPos := and(tick, 255)
+            bitPos := and(tick, 0xff)
         }
     }
 
@@ -54,7 +54,7 @@ library TickBitmap {
             let slot := keccak256(0, 0x40)
             // mask = 1 << bitPos = 1 << (tick % 256)
             // self[wordPos] ^= mask
-            sstore(slot, xor(sload(slot), shl(and(tick, 255), 1)))
+            sstore(slot, xor(sload(slot), shl(and(tick, 0xff), 1)))
         }
     }
 
@@ -77,14 +77,14 @@ library TickBitmap {
 
         if (lte) {
             (int16 wordPos, uint8 bitPos) = position(compressed);
-            // all the 1s at or to the right of the current bitPos
-            // mask = (1 << (bitPos + 1)) - 1
-            // (bitPos + 1) may be 256 but fine
-            // masked = self[wordPos] & mask
             assembly ("memory-safe") {
+                // all the 1s at or to the right of the current bitPos
+                // mask = (1 << (bitPos + 1)) - 1
+                // (bitPos + 1) may overflow but fine since 1 << 256 = 0
+                let mask := sub(shl(add(bitPos, 1), 1), 1)
+                // masked = self[wordPos] & mask
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
-                let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(sload(keccak256(0, 0x40)), mask)
                 initialized := gt(masked, 0)
             }
@@ -107,13 +107,13 @@ library TickBitmap {
                 ++compressed;
             }
             (int16 wordPos, uint8 bitPos) = position(compressed);
-            // all the 1s at or to the left of the bitPos
-            // mask = ~((1 << bitPos) - 1)
-            // masked = self[wordPos] & mask
             assembly ("memory-safe") {
+                // all the 1s at or to the left of the bitPos
+                // mask = ~((1 << bitPos) - 1) = -((1 << bitPos) - 1) - 1 = -(1 << bitPos)
+                let mask := sub(0, shl(bitPos, 1))
+                // masked = self[wordPos] & mask
                 mstore(0, wordPos)
                 mstore(0x20, self.slot)
-                let mask := not(sub(shl(bitPos, 1), 1))
                 masked := and(sload(keccak256(0, 0x40)), mask)
                 initialized := gt(masked, 0)
             }
@@ -161,10 +161,10 @@ library TickBitmap {
             (wordPos, bitPos) = position(compressed);
             // Reuse the same word if the position doesn't change
             tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
-            // all the 1s at or to the right of the current bitPos
-            // mask = (1 << (bitPos + 1)) - 1
-            // (bitPos + 1) may be 256 but fine
             assembly {
+                // all the 1s at or to the right of the current bitPos
+                // mask = (1 << (bitPos + 1)) - 1
+                // (bitPos + 1) may overflow but fine since 1 << 256 = 0
                 let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(tickWord, mask)
                 initialized := gt(masked, 0)
@@ -189,10 +189,10 @@ library TickBitmap {
             }
             // Reuse the same word if the position doesn't change
             tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
-            // all the 1s at or to the left of the bitPos
-            // mask = ~((1 << bitPos) - 1)
             assembly {
-                let mask := not(sub(shl(bitPos, 1), 1))
+                // all the 1s at or to the left of the bitPos
+                // mask = ~((1 << bitPos) - 1) = -((1 << bitPos) - 1) - 1 = -(1 << bitPos)
+                let mask := sub(0, shl(bitPos, 1))
                 masked := and(tickWord, mask)
                 initialized := gt(masked, 0)
             }
@@ -240,10 +240,10 @@ library TickBitmap {
             (wordPos, bitPos) = position(compressed);
             // Reuse the same word if the position doesn't change
             tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
-            // all the 1s at or to the right of the current bitPos
-            // mask = (1 << (bitPos + 1)) - 1
-            // (bitPos + 1) may be 256 but fine
             assembly {
+                // all the 1s at or to the right of the current bitPos
+                // mask = (1 << (bitPos + 1)) - 1
+                // (bitPos + 1) may overflow but fine since 1 << 256 = 0
                 let mask := sub(shl(add(bitPos, 1), 1), 1)
                 masked := and(tickWord, mask)
             }
@@ -262,10 +262,10 @@ library TickBitmap {
             }
             // Reuse the same word if the position doesn't change
             tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
-            // all the 1s at or to the left of the bitPos
-            // mask = ~((1 << bitPos) - 1)
             assembly {
-                let mask := not(sub(shl(bitPos, 1), 1))
+                // all the 1s at or to the left of the bitPos
+                // mask = ~((1 << bitPos) - 1) = -((1 << bitPos) - 1) - 1 = -(1 << bitPos)
+                let mask := sub(0, shl(bitPos, 1))
                 masked := and(tickWord, mask)
             }
             while (masked == 0) {
