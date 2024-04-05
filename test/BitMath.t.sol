@@ -22,7 +22,7 @@ contract BitMathTest is Test {
     BitMathWrapper internal wrapper;
 
     function setUp() public {
-        ogWrapper = IBitMath(deployCode("BitMathTest.sol"));
+        ogWrapper = IBitMath(deployCode("out/BitMathTest.sol/BitMathTest.json"));
         wrapper = new BitMathWrapper();
     }
 

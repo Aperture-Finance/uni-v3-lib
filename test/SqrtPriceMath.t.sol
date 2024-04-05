@@ -84,7 +84,7 @@ contract SqrtPriceMathTest is BaseTest {
     SqrtPriceMathWrapper internal wrapper;
 
     function setUp() public override {
-        ogWrapper = ISqrtPriceMath(deployCode("SqrtPriceMathTest.sol"));
+        ogWrapper = ISqrtPriceMath(deployCode("out/SqrtPriceMathTest.sol/SqrtPriceMathTest.json"));
         wrapper = new SqrtPriceMathWrapper();
     }
 

@@ -13,7 +13,7 @@ contract FullMathTest is Test {
     IFullMath internal wrapper;
 
     function setUp() public {
-        wrapper = IFullMath(deployCode("FullMathTest.sol"));
+        wrapper = IFullMath(deployCode("out/FullMathTest.sol/FullMathTest.json"));
     }
 
     /// @dev Helper function to assume that the `mulDiv` will not overflow.

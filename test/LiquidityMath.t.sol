@@ -18,7 +18,7 @@ contract LiquidityMathTest is Test {
     LiquidityMathWrapper internal wrapper;
 
     function setUp() public {
-        ogWrapper = ILiquidityMath(deployCode("LiquidityMathTest.sol"));
+        ogWrapper = ILiquidityMath(deployCode("out/LiquidityMathTest.sol/LiquidityMathTest.json"));
         wrapper = new LiquidityMathWrapper();
     }
 

@@ -66,7 +66,7 @@ contract LiquidityAmountsTest is BaseTest {
     LiquidityAmountsWrapper internal wrapper;
 
     function setUp() public override {
-        ogWrapper = ILiquidityAmounts(deployCode("LiquidityAmountsTest.sol"));
+        ogWrapper = ILiquidityAmounts(deployCode("out/LiquidityAmountsTest.sol/LiquidityAmountsTest.json"));
         wrapper = new LiquidityAmountsWrapper();
     }
 
