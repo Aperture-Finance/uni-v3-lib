@@ -35,7 +35,7 @@ contract TickBitmapTest is BaseTest {
     TickBitmapWrapper internal wrapper;
 
     function setUp() public virtual override {
-        ogWrapper = ITickBitmap(deployCode("TickBitmapTest.sol"));
+        ogWrapper = ITickBitmap(deployCode("out/TickBitmapTest.sol/TickBitmapTest.json"));
         wrapper = new TickBitmapWrapper();
     }
 

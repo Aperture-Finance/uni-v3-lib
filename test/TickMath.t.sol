@@ -22,7 +22,7 @@ contract TickMathTest is Test {
     TickMathWrapper internal wrapper;
 
     function setUp() public {
-        ogWrapper = ITickMath(deployCode("TickMathTest.sol"));
+        ogWrapper = ITickMath(deployCode("out/TickMathTest.sol/TickMathTest.json"));
         wrapper = new TickMathWrapper();
     }
 

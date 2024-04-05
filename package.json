@@ -1,7 +1,7 @@
 {
   "name": "@aperture_finance/uni-v3-lib",
   "description": "A suite of Solidity libraries that have been imported and rewritten from Uniswap's v3-core and v3-periphery",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "author": "Aperture Finance",
   "homepage": "https://aperture.finance/",
   "license": "GPL-2.0-or-later",
@@ -25,11 +25,11 @@
   "scripts": {
     "build": "forge build",
     "clean": "forge clean",
-    "test": "forge test",
-    "snapshot": "forge snapshot --via-ir --evm-version cancun --isolate",
-    "snapshot:diff": "forge snapshot --diff --via-ir --evm-version cancun --isolate",
-    "prettier": "prettier -c {src,test}/**/*.sol",
-    "prettier:fix": "prettier -w {src,test}/**/*.sol"
+    "test": "forge build && forge test",
+    "snapshot": "forge build && forge snapshot --via-ir --evm-version cancun --isolate",
+    "snapshot:diff": "forge build && forge snapshot --diff --via-ir --evm-version cancun --isolate",
+    "prettier": "prettier -c src/*.sol {src,test}/**/*.sol",
+    "prettier:fix": "prettier -w src/*.sol {src,test}/**/*.sol"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2",

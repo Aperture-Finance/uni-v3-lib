@@ -58,7 +58,7 @@ contract SwapMathTest is BaseTest {
     SwapMathWrapper internal wrapper;
 
     function setUp() public override {
-        ogWrapper = ISwapMath(deployCode("SwapMathTest.sol"));
+        ogWrapper = ISwapMath(deployCode("out/SwapMathTest.sol/SwapMathTest.json"));
         wrapper = new SwapMathWrapper();
     }
 
