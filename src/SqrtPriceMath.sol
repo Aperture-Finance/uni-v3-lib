@@ -93,7 +93,7 @@ library SqrtPriceMath {
                     : FullMath.mulDiv(amount, FixedPoint96.Q96, liquidity)
             );
 
-            nextSqrtPrice = (sqrtPX96 + quotient).toUint160();
+            nextSqrtPrice = (uint256(sqrtPX96) + quotient).toUint160();
         } else {
             uint256 quotient = (
                 amount <= type(uint160).max
