@@ -113,7 +113,7 @@ contract SqrtPriceMathTest is BaseTest {
     ) external {
         liquidity = uint128(bound(liquidity, 1, type(uint128).max));
         sqrtPX96 = boundUint160(sqrtPX96);
-        amount = bound(amount, 0, FullMath.mulDiv96(type(uint160).max, liquidity));
+        amount = bound(amount, 0, FullMath.mulDivQ96(type(uint160).max, liquidity));
         try ogWrapper.getNextSqrtPriceFromAmount1RoundingDown(sqrtPX96, liquidity, amount, add) returns (
             uint160 expected
         ) {
