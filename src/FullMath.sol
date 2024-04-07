@@ -64,6 +64,37 @@ library FullMath {
         }
     }
 
+    /// @notice Calculates a * b / 2^128 with full precision.
+    /// @param a The multiplicand
+    /// @param b The multiplier
+    /// @return result The 256-bit result
+    function mulDivQ128(uint256 a, uint256 b) internal pure returns (uint256 result) {
+        assembly ("memory-safe") {
+            // 512-bit multiply `[prod1 prod0] = a * b`.
+            // Compute the product mod `2**256` and mod `2**256 - 1`
+            // then use the Chinese Remainder Theorem to reconstruct
+            // the 512 bit result. The result is stored in two 256
+            // variables such that `product = prod1 * 2**256 + prod0`.
+
+            // Least significant 256 bits of the product.
+            let prod0 := mul(a, b)
+            let mm := mulmod(a, b, not(0))
+            // Most significant 256 bits of the product.
+            let prod1 := sub(mm, add(prod0, lt(mm, prod0)))
+
+            // Make sure the result is less than `2**256`.
+            if iszero(gt(0x100000000000000000000000000000000, prod1)) {
+                // Store the function selector of `FullMulDivFailed()`.
+                mstore(0x00, 0xae47f702)
+                // Revert with (offset, size).
+                revert(0x1c, 0x04)
+            }
+
+            // Divide [prod1 prod0] by 2^128.
+            result := or(shr(128, prod0), shl(128, prod1))
+        }
+    }
+
     /// @dev Returns the square root of a number. If the number is not a perfect square, the value is rounded down.
     function sqrt(uint256 x) internal pure returns (uint256) {
         return FixedPointMathLib.sqrt(x);
