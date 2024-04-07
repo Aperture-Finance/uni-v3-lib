@@ -27,7 +27,7 @@ library LiquidityAmounts {
         uint256 amount0
     ) internal pure returns (uint128 liquidity) {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
-        uint256 intermediate = FullMath.mulDiv96(sqrtRatioAX96, sqrtRatioBX96);
+        uint256 intermediate = FullMath.mulDivQ96(sqrtRatioAX96, sqrtRatioBX96);
         return FullMath.mulDiv(amount0, intermediate, sqrtRatioBX96.sub(sqrtRatioAX96)).toUint128();
     }
 
@@ -105,7 +105,7 @@ library LiquidityAmounts {
         uint128 liquidity
     ) internal pure returns (uint256 amount1) {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
-        return FullMath.mulDiv96(liquidity, sqrtRatioBX96.sub(sqrtRatioAX96));
+        return FullMath.mulDivQ96(liquidity, sqrtRatioBX96.sub(sqrtRatioAX96));
     }
 
     /// @notice Computes the token0 and token1 value for a given amount of liquidity, the current

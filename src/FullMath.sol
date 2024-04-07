@@ -33,18 +33,21 @@ library FullMath {
         return FixedPointMathLib.fullMulDivUp(a, b, denominator);
     }
 
-    /// @notice Calculates x * y / 2^96 with full precision.
-    function mulDiv96(uint256 x, uint256 y) internal pure returns (uint256 result) {
+    /// @notice Calculates a * b / 2^96 with full precision.
+    /// @param a The multiplicand
+    /// @param b The multiplier
+    /// @return result The 256-bit result
+    function mulDivQ96(uint256 a, uint256 b) internal pure returns (uint256 result) {
         assembly ("memory-safe") {
-            // 512-bit multiply `[prod1 prod0] = x * y`.
+            // 512-bit multiply `[prod1 prod0] = a * b`.
             // Compute the product mod `2**256` and mod `2**256 - 1`
             // then use the Chinese Remainder Theorem to reconstruct
             // the 512 bit result. The result is stored in two 256
             // variables such that `product = prod1 * 2**256 + prod0`.
 
             // Least significant 256 bits of the product.
-            let prod0 := mul(x, y)
-            let mm := mulmod(x, y, not(0))
+            let prod0 := mul(a, b)
+            let mm := mulmod(a, b, not(0))
             // Most significant 256 bits of the product.
             let prod1 := sub(mm, add(prod0, lt(mm, prod0)))
 

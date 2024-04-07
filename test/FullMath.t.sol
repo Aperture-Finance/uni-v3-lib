@@ -57,10 +57,10 @@ contract FullMathTest is Test {
         }
     }
 
-    /// @notice Test `mulDiv96` against `mulDiv` with a denominator of `Q96`.
-    function testFuzz_MulDiv96(uint256 a, uint256 b) public pure {
+    /// @notice Test `mulDivQ96` against `mulDiv` with a denominator of `Q96`.
+    function testFuzz_MulDivQ96(uint256 a, uint256 b) public pure {
         assumeNoOverflow(a, b, FixedPoint96.Q96);
-        assertEq(FullMath.mulDiv96(a, b), Math.mulDiv(a, b, FixedPoint96.Q96));
+        assertEq(FullMath.mulDivQ96(a, b), Math.mulDiv(a, b, FixedPoint96.Q96));
     }
 
     /// @notice Test `sqrt` against OpenZeppelin's.
