@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@uniswap/v3-core/contracts/libraries/FixedPoint96.sol";
+import "@uniswap/v3-core/contracts/libraries/FixedPoint128.sol";
 import {IFullMath} from "src/test/interfaces/IFullMath.sol";
 import {FullMath} from "src/FullMath.sol";
 import "./Base.t.sol";
@@ -61,6 +62,12 @@ contract FullMathTest is Test {
     function testFuzz_MulDivQ96(uint256 a, uint256 b) public pure {
         assumeNoOverflow(a, b, FixedPoint96.Q96);
         assertEq(FullMath.mulDivQ96(a, b), Math.mulDiv(a, b, FixedPoint96.Q96));
+    }
+
+    /// @notice Test `mulDivQ128` against `mulDiv` with a denominator of `Q128`.
+    function testFuzz_MulDivQ128(uint256 a, uint256 b) public pure {
+        assumeNoOverflow(a, b, FixedPoint128.Q128);
+        assertEq(FullMath.mulDivQ128(a, b), Math.mulDiv(a, b, FixedPoint128.Q128));
     }
 
     /// @notice Test `sqrt` against OpenZeppelin's.
