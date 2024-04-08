@@ -174,7 +174,7 @@ library SqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount0) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
         assembly ("memory-safe") {
             if iszero(sqrtRatioAX96) {
                 revert(0, 0)
@@ -214,7 +214,7 @@ library SqrtPriceMath {
         uint128 liquidity,
         bool roundUp
     ) internal pure returns (uint256 amount1) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2(sqrtRatioAX96, sqrtRatioBX96);
+        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
         uint256 numerator = sqrtRatioBX96.sub(sqrtRatioAX96);
         uint256 denominator = FixedPoint96.Q96;
         /**
