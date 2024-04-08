@@ -30,6 +30,24 @@ library TernaryLib {
         }
     }
 
+    /// @notice Equivalent to: `a > b ? a - b : b - a`
+    function absDiff(uint256 a, uint256 b) internal pure returns (uint256 res) {
+        assembly {
+            let diff := sub(a, b)
+            let mask := sub(0, slt(diff, 0))
+            res := xor(mask, add(mask, diff))
+        }
+    }
+
+    /// @notice Equivalent to: `a > b ? a - b : b - a`
+    function absDiffU160(uint160 a, uint160 b) internal pure returns (uint256 res) {
+        assembly {
+            let diff := sub(a, b)
+            let mask := sub(0, slt(diff, 0))
+            res := xor(mask, add(mask, diff))
+        }
+    }
+
     /// @notice Equivalent to: `a < b ? a : b`
     function min(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
@@ -74,8 +92,18 @@ library TernaryLib {
         return (a, b);
     }
 
+    /// @notice Sorts two uint256s and returns them in ascending order
+    function sort2(uint256 a, uint256 b) internal pure returns (uint256, uint256) {
+        assembly {
+            let diff := mul(xor(a, b), lt(b, a))
+            a := xor(a, diff)
+            b := xor(b, diff)
+        }
+        return (a, b);
+    }
+
     /// @notice Sorts two uint160s and returns them in ascending order
-    function sort2(uint160 a, uint160 b) internal pure returns (uint160, uint160) {
+    function sort2U160(uint160 a, uint160 b) internal pure returns (uint160, uint160) {
         assembly {
             let diff := mul(xor(a, b), lt(b, a))
             a := xor(a, diff)
