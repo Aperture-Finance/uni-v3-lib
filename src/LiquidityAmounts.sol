@@ -30,6 +30,23 @@ library LiquidityAmounts {
         return FullMath.mulDiv(amount0, intermediate, TernaryLib.absDiffU160(sqrtRatioAX96, sqrtRatioBX96)).toUint128();
     }
 
+    /// @notice Computes the amount of liquidity received for a given amount of token0 and price range
+    /// @dev Calculates amount0 * (sqrt(upper) * sqrt(lower)) / (sqrt(upper) - sqrt(lower))
+    /// @param sqrtRatioAX96 A sqrt price representing the lower tick boundary
+    /// @param sqrtRatioBX96 A sqrt price representing the upper tick boundary
+    /// @param amount0 The amount0 being sent in
+    /// @return liquidity The amount of returned liquidity
+    function getLiquidityForAmount0Sorted(
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
+        uint256 amount0
+    ) internal pure returns (uint128 liquidity) {
+        unchecked {
+            uint256 intermediate = FullMath.mulDivQ96(sqrtRatioAX96, sqrtRatioBX96);
+            return FullMath.mulDiv(amount0, intermediate, sqrtRatioBX96 - sqrtRatioAX96).toUint128();
+        }
+    }
+
     /// @notice Computes the amount of liquidity received for a given amount of token1 and price range
     /// @dev Calculates amount1 / (sqrt(upper) - sqrt(lower)).
     /// @param sqrtRatioAX96 A sqrt price representing the first tick boundary
@@ -45,6 +62,22 @@ library LiquidityAmounts {
             FullMath
                 .mulDiv(amount1, FixedPoint96.Q96, TernaryLib.absDiffU160(sqrtRatioAX96, sqrtRatioBX96))
                 .toUint128();
+    }
+
+    /// @notice Computes the amount of liquidity received for a given amount of token1 and price range
+    /// @dev Calculates amount1 / (sqrt(upper) - sqrt(lower)).
+    /// @param sqrtRatioAX96 A sqrt price representing the lower tick boundary
+    /// @param sqrtRatioBX96 A sqrt price representing the upper tick boundary
+    /// @param amount1 The amount1 being sent in
+    /// @return liquidity The amount of returned liquidity
+    function getLiquidityForAmount1Sorted(
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
+        uint256 amount1
+    ) internal pure returns (uint128 liquidity) {
+        unchecked {
+            return FullMath.mulDiv(amount1, FixedPoint96.Q96, sqrtRatioBX96 - sqrtRatioAX96).toUint128();
+        }
     }
 
     /// @notice Computes the maximum amount of liquidity received for a given amount of token0, token1, the current
@@ -65,16 +98,16 @@ library LiquidityAmounts {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
-            liquidity = getLiquidityForAmount0(sqrtRatioAX96, sqrtRatioBX96, amount0);
+            liquidity = getLiquidityForAmount0Sorted(sqrtRatioAX96, sqrtRatioBX96, amount0);
         } else if (sqrtRatioX96 < sqrtRatioBX96) {
-            uint128 liquidity0 = getLiquidityForAmount0(sqrtRatioX96, sqrtRatioBX96, amount0);
-            uint128 liquidity1 = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioX96, amount1);
+            uint128 liquidity0 = getLiquidityForAmount0Sorted(sqrtRatioX96, sqrtRatioBX96, amount0);
+            uint128 liquidity1 = getLiquidityForAmount1Sorted(sqrtRatioAX96, sqrtRatioX96, amount1);
             // liquidity = min(liquidity0, liquidity1);
             assembly {
                 liquidity := xor(liquidity0, mul(xor(liquidity0, liquidity1), lt(liquidity1, liquidity0)))
             }
         } else {
-            liquidity = getLiquidityForAmount1(sqrtRatioAX96, sqrtRatioBX96, amount1);
+            liquidity = getLiquidityForAmount1Sorted(sqrtRatioAX96, sqrtRatioBX96, amount1);
         }
     }
 
@@ -88,11 +121,31 @@ library LiquidityAmounts {
         uint160 sqrtRatioBX96,
         uint128 liquidity
     ) internal pure returns (uint256 amount0) {
-        (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
-        return
-            FullMath
-                .mulDiv(uint256(liquidity) << FixedPoint96.RESOLUTION, sqrtRatioBX96.sub(sqrtRatioAX96), sqrtRatioBX96)
-                .div(sqrtRatioAX96);
+        unchecked {
+            (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
+            return
+                FullMath
+                    .mulDiv(uint256(liquidity) << FixedPoint96.RESOLUTION, sqrtRatioBX96 - sqrtRatioAX96, sqrtRatioBX96)
+                    .div(sqrtRatioAX96);
+        }
+    }
+
+    /// @notice Computes the amount of token0 for a given amount of liquidity and a price range
+    /// @param sqrtRatioAX96 A sqrt price representing the lower tick boundary
+    /// @param sqrtRatioBX96 A sqrt price representing the upper tick boundary
+    /// @param liquidity The liquidity being valued
+    /// @return amount0 The amount of token0
+    function getAmount0ForLiquiditySorted(
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
+        uint128 liquidity
+    ) internal pure returns (uint256 amount0) {
+        unchecked {
+            return
+                FullMath
+                    .mulDiv(uint256(liquidity) << FixedPoint96.RESOLUTION, sqrtRatioBX96 - sqrtRatioAX96, sqrtRatioBX96)
+                    .div(sqrtRatioAX96);
+        }
     }
 
     /// @notice Computes the amount of token1 for a given amount of liquidity and a price range
@@ -106,6 +159,21 @@ library LiquidityAmounts {
         uint128 liquidity
     ) internal pure returns (uint256 amount1) {
         return FullMath.mulDivQ96(liquidity, TernaryLib.absDiffU160(sqrtRatioAX96, sqrtRatioBX96));
+    }
+
+    /// @notice Computes the amount of token1 for a given amount of liquidity and a price range
+    /// @param sqrtRatioAX96 A sqrt price representing the lower tick boundary
+    /// @param sqrtRatioBX96 A sqrt price representing the upper tick boundary
+    /// @param liquidity The liquidity being valued
+    /// @return amount1 The amount of token1
+    function getAmount1ForLiquiditySorted(
+        uint160 sqrtRatioAX96,
+        uint160 sqrtRatioBX96,
+        uint128 liquidity
+    ) internal pure returns (uint256 amount1) {
+        unchecked {
+            return FullMath.mulDivQ96(liquidity, sqrtRatioBX96 - sqrtRatioAX96);
+        }
     }
 
     /// @notice Computes the token0 and token1 value for a given amount of liquidity, the current
@@ -125,12 +193,12 @@ library LiquidityAmounts {
         (sqrtRatioAX96, sqrtRatioBX96) = TernaryLib.sort2U160(sqrtRatioAX96, sqrtRatioBX96);
 
         if (sqrtRatioX96 <= sqrtRatioAX96) {
-            amount0 = getAmount0ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+            amount0 = getAmount0ForLiquiditySorted(sqrtRatioAX96, sqrtRatioBX96, liquidity);
         } else if (sqrtRatioX96 <= sqrtRatioBX96) {
-            amount0 = getAmount0ForLiquidity(sqrtRatioX96, sqrtRatioBX96, liquidity);
-            amount1 = getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioX96, liquidity);
+            amount0 = getAmount0ForLiquiditySorted(sqrtRatioX96, sqrtRatioBX96, liquidity);
+            amount1 = getAmount1ForLiquiditySorted(sqrtRatioAX96, sqrtRatioX96, liquidity);
         } else {
-            amount1 = getAmount1ForLiquidity(sqrtRatioAX96, sqrtRatioBX96, liquidity);
+            amount1 = getAmount1ForLiquiditySorted(sqrtRatioAX96, sqrtRatioBX96, liquidity);
         }
     }
 }
