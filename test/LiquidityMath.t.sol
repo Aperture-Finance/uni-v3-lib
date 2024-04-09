@@ -11,7 +11,7 @@ contract LiquidityMathWrapper is ILiquidityMath {
     }
 }
 
-/// @dev Tests for FullMath
+/// @dev Tests for LiquidityMath
 contract LiquidityMathTest is Test {
     // Wrapper that exposes the original LiquidityMath library.
     ILiquidityMath internal ogWrapper;

@@ -51,7 +51,7 @@ library SafeCast {
     function toInt256(uint256 y) internal pure returns (int256 z) {
         /// @solidity memory-safe-assembly
         assembly {
-            if shr(255, y) {
+            if slt(y, 0) {
                 revert(0, 0)
             }
             z := y
