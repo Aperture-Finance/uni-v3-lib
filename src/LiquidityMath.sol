@@ -8,7 +8,7 @@ library LiquidityMath {
     /// @notice Add a signed liquidity delta to liquidity and revert if it overflows or underflows
     /// @param x The liquidity before change
     /// @param y The delta by which liquidity should be changed
-    /// @return z The liquidity delta
+    /// @return z The liquidity after
     function addDelta(uint128 x, int128 y) internal pure returns (uint128 z) {
         /// @solidity memory-safe-assembly
         assembly {
