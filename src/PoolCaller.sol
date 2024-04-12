@@ -321,6 +321,7 @@ library PoolCaller {
             mstore(add(fmp, 0x84), 0xa0)
             // length = data.length + 32
             let length := add(mload(data), 0x20)
+            // TODO: Use `mcopy`
             // Call the identity precompile 0x04 to copy `data` into calldata.
             pop(staticcall(gas(), 0x04, data, length, add(fmp, 0xa4), length))
             // We use `196 + data.length` for the length of our calldata.

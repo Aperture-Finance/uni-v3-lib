@@ -255,7 +255,6 @@ library TickBitmap {
                 sb = BitMath.mostSignificantBit(masked);
             } else {
                 // start from the word of the next tick, since the current tick state doesn't matter
-                // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
                 (wordPos, bitPos) = position(++compressed);
                 // Reuse the same word if the position doesn't change
                 tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
@@ -271,6 +270,7 @@ library TickBitmap {
                 }
                 sb = BitMath.leastSignificantBit(masked);
             }
+            // overflow/underflow is possible, but prevented externally by limiting both tickSpacing and tick
             assembly {
                 // next = (wordPos * 256 + sb) * tickSpacing
                 next := mul(add(shl(8, wordPos), sb), tickSpacing)
