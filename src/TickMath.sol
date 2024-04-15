@@ -31,8 +31,7 @@ library TickMath {
         unchecked {
             int256 tick256;
             assembly {
-                // sign extend to make tick an int256 in twos complement
-                tick256 := signextend(2, tick)
+                tick256 := tick
             }
             uint256 absTick = TernaryLib.abs(tick256);
             /// @solidity memory-safe-assembly
@@ -90,7 +89,7 @@ library TickMath {
 
             // if (tick > 0) ratio = type(uint256).max / ratio;
             assembly {
-                if sgt(tick256, 0) {
+                if sgt(tick, 0) {
                     ratio := div(not(0), ratio)
                 }
             }
@@ -249,8 +248,8 @@ library TickMath {
         int24 tickHi;
         assembly {
             let log_sqrt10001 := mul(log_2X64, 255738958999603826347141) // 128.128 number
-            tickLow := shr(128, sub(log_sqrt10001, 3402992956809132418596140100660247210))
-            tickHi := shr(128, add(log_sqrt10001, 291339464771989622907027621153398088495))
+            tickLow := sar(128, sub(log_sqrt10001, 3402992956809132418596140100660247210))
+            tickHi := sar(128, add(log_sqrt10001, 291339464771989622907027621153398088495))
         }
 
         // Equivalent: tick = tickLow == tickHi ? tickLow : getSqrtRatioAtTick(tickHi) <= sqrtPriceX96 ? tickHi : tickLow;
