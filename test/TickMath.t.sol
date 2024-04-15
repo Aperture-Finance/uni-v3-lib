@@ -84,6 +84,11 @@ contract TickMathTest is Test {
     /// @notice Test the equivalence of `getTickAtSqrtRatio` and the original library
     function testFuzz_GetTickAtSqrtRatio(uint160 sqrtPriceX96) public view {
         sqrtPriceX96 = uint160(bound(sqrtPriceX96, TickMath.MIN_SQRT_RATIO, TickMath.MAX_SQRT_RATIO - 1));
-        assertEq(TickMath.getTickAtSqrtRatio(sqrtPriceX96), ogWrapper.getTickAtSqrtRatio(sqrtPriceX96));
+        int24 tick = TickMath.getTickAtSqrtRatio(sqrtPriceX96);
+        int256 tick256;
+        assembly {
+            tick256 := tick
+        }
+        assertEq(tick256, ogWrapper.getTickAtSqrtRatio(sqrtPriceX96));
     }
 }
