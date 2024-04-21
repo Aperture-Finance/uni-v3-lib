@@ -249,8 +249,6 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // In case the upper bits are not clean.
-            liquidity := signextend(15, liquidity)
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
@@ -287,8 +285,6 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // In case the upper bits are not clean.
-            liquidity := signextend(15, liquidity)
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
