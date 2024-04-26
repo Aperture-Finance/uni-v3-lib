@@ -22,7 +22,7 @@ library TernaryLib {
     function abs(int256 x) internal pure returns (uint256 y) {
         assembly {
             // mask = 0 if x >= 0 else -1
-            let mask := sub(0, slt(x, 0))
+            let mask := sar(255, x)
             // If x >= 0, |x| = x = 0 ^ x
             // If x < 0, |x| = ~~|x| = ~(-|x| - 1) = ~(x - 1) = -1 ^ (x - 1)
             // Either case, |x| = mask ^ (x + mask)
@@ -34,7 +34,7 @@ library TernaryLib {
     function absDiff(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
             let diff := sub(a, b)
-            let mask := sub(0, slt(diff, 0))
+            let mask := sar(255, diff)
             res := xor(mask, add(mask, diff))
         }
     }
@@ -43,7 +43,7 @@ library TernaryLib {
     function absDiffU160(uint160 a, uint160 b) internal pure returns (uint256 res) {
         assembly {
             let diff := sub(a, b)
-            let mask := sub(0, slt(diff, 0))
+            let mask := sar(255, diff)
             res := xor(mask, add(mask, diff))
         }
     }
