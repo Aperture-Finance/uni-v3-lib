@@ -264,10 +264,10 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // sign = 1 if liquidity >= 0 else 0
-            sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
             mask := sar(255, liquidity)
+            // sign = 1 if liquidity >= 0 else 0
+            sign := iszero(mask)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
         // amount0Abs = liquidity / sqrt(lower) - liquidity / sqrt(upper) < type(uint224).max
@@ -300,10 +300,10 @@ library SqrtPriceMath {
         uint256 mask;
         uint128 liquidityAbs;
         assembly {
-            // sign = 1 if liquidity >= 0 else 0
-            sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
             mask := sar(255, liquidity)
+            // sign = 1 if liquidity >= 0 else 0
+            sign := iszero(mask)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
         // amount1Abs = liquidity * (sqrt(upper) - sqrt(lower)) < type(uint192).max
