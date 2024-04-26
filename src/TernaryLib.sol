@@ -33,9 +33,10 @@ library TernaryLib {
     /// @notice Equivalent to: `a > b ? a - b : b - a`
     function absDiff(uint256 a, uint256 b) internal pure returns (uint256 res) {
         assembly {
-            let diff := sub(a, b)
-            let mask := sar(255, diff)
-            res := xor(mask, add(mask, diff))
+            // The diff between two `uint256` may overflow `int256`
+            let diff0 := sub(a, b)
+            let diff1 := sub(b, a)
+            res := xor(diff1, mul(xor(diff0, diff1), gt(a, b)))
         }
     }
 

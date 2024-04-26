@@ -26,8 +26,8 @@
     "build": "forge build",
     "clean": "forge clean",
     "test": "forge build && forge test",
-    "snapshot": "forge build && forge snapshot --via-ir --evm-version cancun --isolate",
-    "snapshot:diff": "forge build && forge snapshot --diff --via-ir --evm-version cancun --isolate",
+    "snapshot": "forge build && forge snapshot --isolate",
+    "snapshot:diff": "forge build && forge snapshot --diff --isolate",
     "prettier": "prettier -c src/*.sol {src,test}/**/*.sol",
     "prettier:fix": "prettier -w src/*.sol {src,test}/**/*.sol"
   },
