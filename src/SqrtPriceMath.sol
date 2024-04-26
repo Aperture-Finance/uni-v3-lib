@@ -267,7 +267,7 @@ library SqrtPriceMath {
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
-            mask := sub(sign, 1)
+            mask := sar(255, liquidity)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
         // amount0Abs = liquidity / sqrt(lower) - liquidity / sqrt(upper) < type(uint224).max
@@ -303,7 +303,7 @@ library SqrtPriceMath {
             // sign = 1 if liquidity >= 0 else 0
             sign := iszero(slt(liquidity, 0))
             // mask = 0 if liquidity >= 0 else -1
-            mask := sub(sign, 1)
+            mask := sar(255, liquidity)
             liquidityAbs := xor(mask, add(mask, liquidity))
         }
         // amount1Abs = liquidity * (sqrt(upper) - sqrt(lower)) < type(uint192).max
