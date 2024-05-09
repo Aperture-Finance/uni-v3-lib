@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.8.4;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.5.0;
 
 /// @title Safe casting methods
 /// @author Aperture Finance
@@ -10,39 +10,24 @@ library SafeCast {
     /// @param y The uint256 to be downcasted
     /// @return z The downcasted integer, now type uint160
     function toUint160(uint256 y) internal pure returns (uint160 z) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            if shr(160, y) {
-                revert(0, 0)
-            }
-            z := y
-        }
+        if (y >= 1 << 160) revert();
+        z = uint160(y);
     }
 
     /// @notice Cast a uint256 to a uint128, revert on overflow
     /// @param y The uint256 to be downcasted
     /// @return z The downcasted integer, now type uint128
     function toUint128(uint256 y) internal pure returns (uint128 z) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            if shr(128, y) {
-                revert(0, 0)
-            }
-            z := y
-        }
+        if (y >= 1 << 128) revert();
+        z = uint128(y);
     }
 
     /// @notice Cast a int256 to a int128, revert on overflow or underflow
     /// @param y The int256 to be downcasted
     /// @return z The downcasted integer, now type int128
     function toInt128(int256 y) internal pure returns (int128 z) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            if sub(y, signextend(15, y)) {
-                revert(0, 0)
-            }
-            z := y
-        }
+        if (y != int128(y)) revert();
+        z = int128(y);
     }
 
     /// @notice Cast a uint256 to a int256, revert on overflow
@@ -62,12 +47,7 @@ library SafeCast {
     /// @param y The uint256 to be downcasted
     /// @return z The downcasted integer, now type int128
     function toInt128(uint256 y) internal pure returns (int128 z) {
-        /// @solidity memory-safe-assembly
-        assembly {
-            if shr(127, y) {
-                revert(0, 0)
-            }
-            z := y
-        }
+        if (y >= 1 << 127) revert();
+        z = int128(int256(y));
     }
 }
