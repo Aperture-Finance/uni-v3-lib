@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
-import "src/PoolCaller.sol";
+import {IPancakeV3Pool} from "@pancakeswap/v3-core/contracts/interfaces/IPancakeV3Pool.sol";
+import {PoolCaller, V3PoolCallee} from "src/PoolCaller.sol";
 import "./Base.t.sol";
 
 /// @dev Expose internal functions to test the PoolCaller library.
