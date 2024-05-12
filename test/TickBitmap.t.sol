@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {ITickBitmap} from "src/test/interfaces/ITickBitmap.sol";
-import "src/TickBitmap.sol";
+import {V3PoolCallee} from "src/PoolCaller.sol";
+import {TickBitmap} from "src/TickBitmap.sol";
 import "./Base.t.sol";
 
 contract TickBitmapWrapper is ITickBitmap {
@@ -45,7 +46,7 @@ contract TickBitmapTest is BaseTest {
         assembly {
             // signed arithmetic shift right
             wordPos := sar(8, tick)
-            bitPos := and(tick, 255)
+            bitPos := and(tick, 0xff)
         }
         assertEq(int256(wordPos), tick >> 8);
         assertEq(bitPos, uint8(int8(tick % 256)));
@@ -93,7 +94,7 @@ contract TickBitmapTest is BaseTest {
         int24 tick;
         bool initialized;
         for (int16 wordPos = -128; wordPos < 128; ++wordPos) {
-            uint8 bitPos = uint8(pseudoRandom(uint16(wordPos)) & 255);
+            uint8 bitPos = uint8(pseudoRandom(uint16(wordPos)) & 0xff);
             assembly {
                 tick := add(shl(8, wordPos), bitPos)
             }
@@ -112,7 +113,7 @@ contract TickBitmapTest is BaseTest {
         int24 tick;
         bool initialized;
         for (int16 wordPos = -128; wordPos < 128; ++wordPos) {
-            uint8 bitPos = uint8(pseudoRandom(uint16(wordPos)) & 255);
+            uint8 bitPos = uint8(pseudoRandom(uint16(wordPos)) & 0xff);
             assembly {
                 tick := add(shl(8, wordPos), bitPos)
             }
