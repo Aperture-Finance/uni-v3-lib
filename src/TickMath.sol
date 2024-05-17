@@ -49,18 +49,12 @@ library TickMath {
                 }
             }
 
-            // Equivalent: ratio = 2**128 / sqrt(1.0001) if absTick & 0x1 else 1 << 128
+            // Equivalent to:
+            //     ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
+            //     or ratio = int(2**128 / sqrt(1.0001)) if (absTick & 0x1) else 1 << 128
             uint256 ratio;
             assembly {
-                ratio := and(
-                    shr(
-                        // 128 if absTick & 0x1 else 0
-                        shl(7, and(absTick, 0x1)),
-                        // upper 128 bits of 2**256 / sqrt(1.0001) where the 128th bit is 1
-                        0xfffcb933bd6fad37aa2d162d1a59400100000000000000000000000000000000
-                    ),
-                    0x1ffffffffffffffffffffffffffffffff // mask lower 129 bits
-                )
+                ratio := xor(shl(128, 1), mul(xor(shl(128, 1), 0xfffcb933bd6fad37aa2d162d1a594001), and(absTick, 0x1)))
             }
             // Iterate through 1th to 19th bit of absTick because MAX_TICK < 2**20
             // Equivalent to:
