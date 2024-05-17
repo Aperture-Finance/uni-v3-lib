@@ -92,7 +92,7 @@ library TickMath {
             // we then downcast because we know the result always fits within 160 bits due to our tick input constraint
             // we round up in the division so getTickAtSqrtRatio of the output price is always consistent
             assembly {
-                sqrtPriceX96 := shr(32, add(ratio, 0xffffffff))
+                sqrtPriceX96 := shr(32, add(ratio, sub(shl(32, 1), 1)))
             }
         }
     }
@@ -169,67 +169,67 @@ library TickMath {
             // f = (r**2 >= 2**255)
             let f := slt(square, 0)
             // r = r**2 >> 128 if r**2 >= 2**255 else r**2 >> 127
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(63, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(62, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(61, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(60, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(59, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(58, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(57, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(56, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(55, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(54, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(53, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(52, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(51, f), log_2X64)
 
             log_2X64 := or(shl(50, slt(mul(r, r), 0)), log_2X64)
