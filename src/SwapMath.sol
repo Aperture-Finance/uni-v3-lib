@@ -13,23 +13,23 @@ library SwapMath {
     /// @notice Computes the sqrt price target for the next swap step
     /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
     /// @param sqrtPriceNextX96 The Q64.96 sqrt price for the next initialized tick
-    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
-    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
-    /// @return sqrtRatioTargetX96 The price target for the next swap step
-    function getSqrtRatioTarget(
+    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value
+    /// after the swap. If one for zero, the price cannot be greater than this value after the swap
+    /// @return sqrtPriceTargetX96 The price target for the next swap step
+    function getSqrtPriceTarget(
         bool zeroForOne,
         uint160 sqrtPriceNextX96,
         uint160 sqrtPriceLimitX96
-    ) internal pure returns (uint160 sqrtRatioTargetX96) {
+    ) internal pure returns (uint160 sqrtPriceTargetX96) {
         assembly {
             // a flag to toggle between sqrtPriceNextX96 and sqrtPriceLimitX96
-            // when zeroForOne == true, nextOrLimit reduces to sqrtPriceNextX96 > sqrtPriceLimitX96
-            // sqrtRatioTargetX96 = max(sqrtPriceNextX96, sqrtPriceLimitX96)
-            // when zeroForOne == false, nextOrLimit reduces to sqrtPriceNextX96 <= sqrtPriceLimitX96
-            // sqrtRatioTargetX96 = min(sqrtPriceNextX96, sqrtPriceLimitX96)
-            let nextOrLimit := xor(gt(sqrtPriceNextX96, sqrtPriceLimitX96), iszero(zeroForOne))
+            // when zeroForOne == true, nextOrLimit reduces to sqrtPriceNextX96 >= sqrtPriceLimitX96
+            // sqrtPriceTargetX96 = max(sqrtPriceNextX96, sqrtPriceLimitX96)
+            // when zeroForOne == false, nextOrLimit reduces to sqrtPriceNextX96 < sqrtPriceLimitX96
+            // sqrtPriceTargetX96 = min(sqrtPriceNextX96, sqrtPriceLimitX96)
+            let nextOrLimit := xor(lt(sqrtPriceNextX96, sqrtPriceLimitX96), zeroForOne)
             let symDiff := xor(sqrtPriceNextX96, sqrtPriceLimitX96)
-            sqrtRatioTargetX96 := xor(sqrtPriceLimitX96, mul(symDiff, nextOrLimit))
+            sqrtPriceTargetX96 := xor(sqrtPriceLimitX96, mul(symDiff, nextOrLimit))
         }
     }
 
