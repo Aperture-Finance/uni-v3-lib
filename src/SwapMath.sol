@@ -55,11 +55,9 @@ library SwapMath {
             bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
             uint256 feeComplement = MAX_FEE_PIPS - feePips;
             bool exactOut = amountRemaining < 0;
-            uint256 amountRemainingAbs;
 
             if (!exactOut) {
-                amountRemainingAbs = uint256(amountRemaining);
-                uint256 amountRemainingLessFee = FullMath.mulDiv(amountRemainingAbs, feeComplement, MAX_FEE_PIPS);
+                uint256 amountRemainingLessFee = FullMath.mulDiv(uint256(amountRemaining), feeComplement, MAX_FEE_PIPS);
                 amountIn = zeroForOne
                     ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)
                     : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, true);
@@ -73,11 +71,11 @@ library SwapMath {
                     sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromInput(
                         sqrtRatioCurrentX96,
                         liquidity,
-                        amountIn,
+                        amountRemainingLessFee,
                         zeroForOne
                     );
                     // we didn't reach the target, so take the remainder of the maximum input as fee
-                    feeAmount = amountRemainingAbs - amountIn;
+                    feeAmount = uint256(amountRemaining) - amountIn;
                 }
                 amountOut = zeroForOne
                     ? SqrtPriceMath.getAmount1Delta(sqrtRatioNextX96, sqrtRatioCurrentX96, liquidity, false)
@@ -86,13 +84,12 @@ library SwapMath {
                 amountOut = zeroForOne
                     ? SqrtPriceMath.getAmount1Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, false)
                     : SqrtPriceMath.getAmount0Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, false);
-                amountRemainingAbs = uint256(-amountRemaining);
-                if (amountRemainingAbs >= amountOut) {
+                if (uint256(-amountRemaining) >= amountOut) {
                     // `amountOut` is capped by the target price
                     sqrtRatioNextX96 = sqrtRatioTargetX96;
                 } else {
                     // cap the output amount to not exceed the remaining output amount
-                    amountOut = amountRemainingAbs;
+                    amountOut = uint256(-amountRemaining);
                     sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromOutput(
                         sqrtRatioCurrentX96,
                         liquidity,
