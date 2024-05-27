@@ -48,6 +48,16 @@ contract TickMathTest is Test {
         wrapper.getSqrtRatioAtTick(TickMath.MAX_TICK + 1);
     }
 
+    function testFuzzRevert_GetSqrtRatioAtTick(int24 tick) public {
+        if (tick > 0) {
+            tick = int24(bound(tick, TickMath.MAX_TICK + 1, type(int24).max));
+        } else {
+            tick = int24(bound(tick, type(int24).min, TickMath.MIN_TICK - 1));
+        }
+        vm.expectRevert(bytes("T"));
+        wrapper.getSqrtRatioAtTick(tick);
+    }
+
     /// @notice Test the equivalence of the original and new `getSqrtRatioAtTick`
     function testFuzz_GetSqrtRatioAtTick(int24 tick) public view {
         tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK));
@@ -79,6 +89,16 @@ contract TickMathTest is Test {
         wrapper.getTickAtSqrtRatio(TickMath.MIN_SQRT_RATIO - 1);
         vm.expectRevert(bytes("R"));
         wrapper.getTickAtSqrtRatio(TickMath.MAX_SQRT_RATIO);
+    }
+
+    function testFuzzRevert_GetTickAtSqrtRatio(uint160 sqrtPriceX96, bool gte) public {
+        if (gte) {
+            sqrtPriceX96 = uint160(bound(sqrtPriceX96, TickMath.MAX_SQRT_RATIO, type(uint160).max));
+        } else {
+            sqrtPriceX96 = uint160(bound(sqrtPriceX96, 0, TickMath.MIN_SQRT_RATIO - 1));
+        }
+        vm.expectRevert(bytes("R"));
+        wrapper.getTickAtSqrtRatio(sqrtPriceX96);
     }
 
     /// @notice Test the equivalence of `getTickAtSqrtRatio` and the original library

@@ -62,6 +62,19 @@ contract SwapMathTest is BaseTest {
         wrapper = new SwapMathWrapper();
     }
 
+    function testFuzz_getSqrtPriceTarget(
+        bool zeroForOne,
+        uint160 sqrtPriceNextX96,
+        uint160 sqrtPriceLimitX96
+    ) external pure {
+        assertEq(
+            SwapMath.getSqrtPriceTarget(zeroForOne, sqrtPriceNextX96, sqrtPriceLimitX96),
+            (zeroForOne ? sqrtPriceNextX96 < sqrtPriceLimitX96 : sqrtPriceNextX96 > sqrtPriceLimitX96)
+                ? sqrtPriceLimitX96
+                : sqrtPriceNextX96
+        );
+    }
+
     function testFuzz_ComputeSwapStep(
         uint160 sqrtRatioCurrentX96,
         uint160 sqrtRatioTargetX96,

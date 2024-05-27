@@ -80,9 +80,9 @@ library TickBitmap {
                 // all the 1s at or to the right of the current bitPos
                 uint256 masked;
                 assembly ("memory-safe") {
-                    // mask = (1 << (bitPos + 1)) - 1
-                    // (bitPos + 1) may overflow but fine since 1 << 256 = 0
-                    let mask := sub(shl(add(bitPos, 1), 1), 1)
+                    // mask = (1 << (bitPos + 1)) - 1 = (2 << bitPos) - 1
+                    // (2 << bitPos) may overflow but fine since 2 << 255 = 0
+                    let mask := sub(shl(bitPos, 2), 1)
                     // masked = self[wordPos] & mask
                     mstore(0, wordPos)
                     mstore(0x20, self.slot)
@@ -162,9 +162,9 @@ library TickBitmap {
             // Reuse the same word if the position doesn't change
             tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
             assembly {
-                // mask = (1 << (bitPos + 1)) - 1
-                // (bitPos + 1) may overflow but fine since 1 << 256 = 0
-                let mask := sub(shl(add(bitPos, 1), 1), 1)
+                // mask = (1 << (bitPos + 1)) - 1 = (2 << bitPos) - 1
+                // (2 << bitPos) may overflow but fine since 2 << 255 = 0
+                let mask := sub(shl(bitPos, 2), 1)
                 // all the 1s at or to the right of the current bitPos
                 masked := and(tickWord, mask)
             }
@@ -242,9 +242,9 @@ library TickBitmap {
                 // Reuse the same word if the position doesn't change
                 tickWord = wordPos == lastWordPos ? lastWord : pool.tickBitmap(wordPos);
                 assembly {
-                    // mask = (1 << (bitPos + 1)) - 1
-                    // (bitPos + 1) may overflow but fine since 1 << 256 = 0
-                    let mask := sub(shl(add(bitPos, 1), 1), 1)
+                    // mask = (1 << (bitPos + 1)) - 1 = (2 << bitPos) - 1
+                    // (2 << bitPos) may overflow but fine since 2 << 255 = 0
+                    let mask := sub(shl(bitPos, 2), 1)
                     // all the 1s at or to the right of the current bitPos
                     masked := and(tickWord, mask)
                 }
