@@ -2,7 +2,8 @@
 pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import {INonfungiblePositionManager as INPM, IERC721Permit, IPeripheryImmutableState} from "./interfaces/INonfungiblePositionManager.sol";
+import {IUniswapV3NonfungiblePositionManager as IUniV3NPM, ICommonNonfungiblePositionManager as INPM, IERC721Permit, IPeripheryImmutableState} from "./interfaces/IUniswapV3NonfungiblePositionManager.sol";
+import {ISlipStreamNonfungiblePositionManager as ISlipStreamNPM} from "./interfaces/ISlipStreamNonfungiblePositionManager.sol";
 
 // details about the uniswap position
 struct PositionFull {
@@ -36,6 +37,15 @@ struct Position {
     int24 tickLower;
     int24 tickUpper;
     // the liquidity of the position
+    uint128 liquidity;
+}
+
+struct SlipStreamPosition {
+    address token0;
+    address token1;
+    int24 tickSpacing;
+    int24 tickLower;
+    int24 tickUpper;
     uint128 liquidity;
 }
 
@@ -241,7 +251,7 @@ library NPMCaller {
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The ID of the token that represents the position
     function positionsFull(INPM npm, uint256 tokenId) internal view returns (PositionFull memory pos) {
-        bytes4 selector = INPM.positions.selector;
+        bytes4 selector = IUniV3NPM.positions.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
             mstore(0, selector)
@@ -255,11 +265,11 @@ library NPMCaller {
         }
     }
 
-    /// @dev Equivalent to `INonfungiblePositionManager.positions(tokenId)`
+    /// @dev Equivalent to `IUniswapV3NonfungiblePositionManager.positions(tokenId)`
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param tokenId The ID of the token that represents the position
     function positions(INPM npm, uint256 tokenId) internal view returns (Position memory pos) {
-        bytes4 selector = INPM.positions.selector;
+        bytes4 selector = IUniV3NPM.positions.selector;
         assembly ("memory-safe") {
             // Write the abi-encoded calldata into memory.
             mstore(0, selector)
@@ -277,14 +287,36 @@ library NPMCaller {
         }
     }
 
-    /// @dev Equivalent to `INonfungiblePositionManager.mint`
+    /// @dev Equivalent to `ISlipStreamNonfungiblePositionManager.positions(tokenId)`
+    /// @param npm SlipStream Nonfungible Position Manager
+    /// @param tokenId The ID of the token that represents the position
+    function positionsSlipStream(INPM npm, uint256 tokenId) internal view returns (SlipStreamPosition memory pos) {
+        bytes4 selector = ISlipStreamNPM.positions.selector;
+        assembly ("memory-safe") {
+            // Write the abi-encoded calldata into memory.
+            mstore(0, selector)
+            mstore(4, tokenId)
+            // We use 36 because of the length of our calldata.
+            // We copy up to 256 bytes of return data at `pos` which is the free memory pointer.
+            if iszero(staticcall(gas(), npm, 0, 0x24, pos, 0x100)) {
+                // Bubble up the revert reason.
+                revert(pos, returndatasize())
+            }
+            // Move the free memory pointer to the end of the struct.
+            mstore(0x40, add(pos, 0x100))
+            // Skip the first two struct members.
+            pos := add(pos, 0x40)
+        }
+    }
+
+    /// @dev Equivalent to `IUniswapV3NonfungiblePositionManager.mint`
     /// @param npm Uniswap v3 Nonfungible Position Manager
     /// @param params The parameters for minting a position
     function mint(
         INPM npm,
-        INPM.MintParams memory params
+        IUniV3NPM.MintParams memory params
     ) internal returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) {
-        uint32 selector = uint32(INPM.mint.selector);
+        uint32 selector = uint32(IUniV3NPM.mint.selector);
         assembly ("memory-safe") {
             // Cache the free memory pointer.
             let fmp := mload(0x40)
@@ -293,9 +325,44 @@ library NPMCaller {
             let wordBeforeParams := mload(memBeforeParams)
             // Write the function selector 4 bytes before `params`.
             mstore(memBeforeParams, selector)
-            // We use 356 because of the length of our calldata.
+            // We use 356 (0x164) because of the length of our calldata.
             // We copy up to 128 bytes of return data at the free memory pointer.
             if iszero(call(gas(), npm, 0, sub(params, 4), 0x164, 0, 0x80)) {
+                // Bubble up the revert reason.
+                revert(0, returndatasize())
+            }
+            // Read the return data.
+            tokenId := mload(0)
+            liquidity := mload(0x20)
+            amount0 := mload(0x40)
+            amount1 := mload(0x60)
+            // Restore the free memory pointer, zero pointer and memory word before `params`.
+            // `memBeforeParams` >= 0x60 so restore it after `mload`.
+            mstore(memBeforeParams, wordBeforeParams)
+            mstore(0x40, fmp)
+            mstore(0x60, 0)
+        }
+    }
+
+    /// @dev Equivalent to `ISlipStreamUniswapV3NonfungiblePositionManager.mint`
+    /// @param npm SlipStream Nonfungible Position Manager
+    /// @param params The parameters for minting a position
+    function mint(
+        INPM npm,
+        ISlipStreamNPM.MintParams memory params
+    ) internal returns (uint256 tokenId, uint128 liquidity, uint256 amount0, uint256 amount1) {
+        uint32 selector = uint32(ISlipStreamNPM.mint.selector);
+        assembly ("memory-safe") {
+            // Cache the free memory pointer.
+            let fmp := mload(0x40)
+            // Cache the memory word before `params`.
+            let memBeforeParams := sub(params, 0x20)
+            let wordBeforeParams := mload(memBeforeParams)
+            // Write the function selector 4 bytes before `params`.
+            mstore(memBeforeParams, selector)
+            // We use 388 (0x184) because of the length of our calldata.
+            // We copy up to 128 bytes of return data at the free memory pointer.
+            if iszero(call(gas(), npm, 0, sub(params, 4), 0x184, 0, 0x80)) {
                 // Bubble up the revert reason.
                 revert(0, returndatasize())
             }
