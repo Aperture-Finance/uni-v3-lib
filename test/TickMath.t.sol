@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {Test} from "forge-std/Test.sol";
 import {ITickMath} from "src/test/interfaces/ITickMath.sol";
 import {TickMath} from "src/TickMath.sol";
-import "./Base.t.sol";
 
 contract TickMathWrapper is ITickMath {
     function getSqrtRatioAtTick(int24 tick) external pure returns (uint160 sqrtPriceX96) {

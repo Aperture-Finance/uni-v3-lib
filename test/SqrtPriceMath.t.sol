@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {ISqrtPriceMath} from "src/test/interfaces/ISqrtPriceMath.sol";
-import "src/SqrtPriceMath.sol";
+import {FullMath} from "src/FullMath.sol";
+import {SqrtPriceMath} from "src/SqrtPriceMath.sol";
 import "./Base.t.sol";
 
 contract SqrtPriceMathWrapper is ISqrtPriceMath {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
-import "src/SafeCast.sol";
+import {Test} from "forge-std/Test.sol";
+import {SafeCast} from "src/SafeCast.sol";
 
 contract SafeCastTest is Test {
     function testRevert_ToUint160() public {
