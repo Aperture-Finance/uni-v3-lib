@@ -85,6 +85,14 @@ To run the tests:
 forge test
 ```
 
+## Inline Assembly 
+
+The libraries in this repository make use of [in-line assembly](https://docs.soliditylang.org/en/latest/assembly.html) for fine-grained control and optimizations. Knowledge of ABI encoding is required to understand how to calculate calldata length and parameter offsets. Helpful links:
+
+- [ABI Specification](https://docs.soliditylang.org/en/latest/abi-spec.html#formal-specification-of-the-encoding)
+- [HashEx Online ABI Encoder Tool](https://abi.hashex.org)
+- [Solidity Memory Layout](https://docs.soliditylang.org/en/latest/internals/layout_in_memory.html)
+
 ## Contributions
 
 Contributions are welcome. Please ensure that any modifications pass all tests before submitting a pull request.

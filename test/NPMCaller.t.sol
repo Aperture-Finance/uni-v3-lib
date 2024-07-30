@@ -10,9 +10,9 @@ import "./Base.t.sol";
 contract NPMCallerWrapper {
     using SafeTransferLib for address;
 
-    INonfungiblePositionManager internal immutable npm;
+    INPM internal immutable npm;
 
-    constructor(INonfungiblePositionManager _npm) {
+    constructor(INPM _npm) {
         npm = _npm;
     }
 
@@ -60,7 +60,27 @@ contract NPMCallerWrapper {
         return NPMCaller.positions(npm, tokenId);
     }
 
-    function mint(INPM.MintParams memory params) external returns (uint256, uint128, uint256, uint256) {
+    function positionsSlipStream(uint256 tokenId) external view returns (SlipStreamPosition memory) {
+        return NPMCaller.positionsSlipStream(npm, tokenId);
+    }
+
+    function mint(IUniV3NPM.MintParams memory params) external returns (uint256, uint128, uint256, uint256) {
+        uint256 amount0Desired = params.amount0Desired;
+        uint256 amount1Desired = params.amount1Desired;
+        if (amount0Desired != 0) {
+            address token0 = params.token0;
+            token0.safeTransferFrom(msg.sender, address(this), amount0Desired);
+            token0.safeApprove(address(npm), amount0Desired);
+        }
+        if (amount1Desired != 0) {
+            address token1 = params.token1;
+            token1.safeTransferFrom(msg.sender, address(this), amount1Desired);
+            token1.safeApprove(address(npm), amount1Desired);
+        }
+        return NPMCaller.mint(npm, params);
+    }
+
+    function mint(ISlipStreamNPM.MintParams memory params) external returns (uint256, uint128, uint256, uint256) {
         uint256 amount0Desired = params.amount0Desired;
         uint256 amount1Desired = params.amount1Desired;
         if (amount0Desired != 0) {
@@ -133,7 +153,7 @@ contract NPMCallerTest is BaseTest {
 
     /// @dev Returns the digest used in the permit signature verification
     function permitDigest(address spender, uint256 tokenId, uint256 deadline) internal view returns (bytes32) {
-        (uint96 nonce, , , , , , , , , , , ) = npm.positions(tokenId);
+        (uint96 nonce, , , , , , , , , , , ) = IUniV3NPM(address(npm)).positions(tokenId);
         return
             MessageHashUtils.toTypedDataHash(
                 DOMAIN_SEPARATOR,
@@ -204,14 +224,14 @@ contract NPMCallerTest is BaseTest {
         }
     }
 
-    function testRevert_GetApproved() public {
+    function testRevert_GetApproved() public virtual {
         vm.expectRevert("ERC721: approved query for nonexistent token");
         npmCaller.getApproved(0);
     }
 
     function test_Approve() public {
         NPMCallerWrapper _npmCaller = npmCaller;
-        uint256 tokenId = npm.totalSupply();
+        uint256 tokenId = npm.tokenByIndex(0);
         vm.prank(npm.ownerOf(tokenId));
         npm.setApprovalForAll(address(_npmCaller), true);
         _npmCaller.approve(address(this), tokenId);
@@ -219,7 +239,7 @@ contract NPMCallerTest is BaseTest {
     }
 
     function test_IsApprovedForAll() public view {
-        address owner = npm.ownerOf(npm.totalSupply());
+        address owner = npm.ownerOf(npm.tokenByIndex(0));
         assertEq(
             npmCaller.isApprovedForAll(owner, address(this)),
             npm.isApprovedForAll(owner, address(this)),
@@ -256,8 +276,20 @@ contract NPMCallerTest is BaseTest {
     function testFuzz_PositionsFull(uint256 tokenId) public view virtual {
         tokenId = bound(tokenId, 1, 10000);
         try npmCaller.positionsFull(tokenId) returns (PositionFull memory pos) {
-            (uint96 nonce, , address token0, , , int24 tickLower, , uint128 liquidity, , , , uint128 tokensOwed1) = npm
-                .positions(tokenId);
+            (
+                uint96 nonce,
+                ,
+                address token0,
+                ,
+                ,
+                int24 tickLower,
+                ,
+                uint128 liquidity,
+                ,
+                ,
+                ,
+                uint128 tokensOwed1
+            ) = IUniV3NPM(address(npm)).positions(tokenId);
             assertEq(nonce, pos.nonce, "nonce");
             assertEq(token0, pos.token0, "token0");
             assertEq(tickLower, pos.tickLower, "tickLower");
@@ -286,7 +318,7 @@ contract NPMCallerTest is BaseTest {
                 ,
                 ,
 
-            ) = npm.positions(tokenId);
+            ) = IUniV3NPM(address(npm)).positions(tokenId);
             assertEq(token0, pos.token0, "token0");
             assertEq(token1, pos.token1, "token1");
             assertEq(fee, pos.fee, "fee");
@@ -298,12 +330,12 @@ contract NPMCallerTest is BaseTest {
         }
     }
 
-    function testRevert_Positions() public {
+    function testRevert_Positions() public virtual {
         vm.expectRevert("Invalid token ID");
         npmCaller.positions(0);
     }
 
-    function test_Mint() public returns (uint256 tokenId) {
+    function test_Mint() public virtual returns (uint256 tokenId) {
         int24 tick = matchSpacing(currentTick());
         uint256 amount1Desired = 1e18;
         address _token1 = token1;
@@ -311,7 +343,7 @@ contract NPMCallerTest is BaseTest {
         NPMCallerWrapper _npmCaller = npmCaller;
         _token1.safeApprove(address(_npmCaller), amount1Desired);
         (tokenId, , , ) = _npmCaller.mint(
-            INPM.MintParams({
+            IUniV3NPM.MintParams({
                 token0: token0,
                 token1: _token1,
                 fee: fee,
@@ -430,6 +462,114 @@ contract NPMCallerPCSTest is NPMCallerTest {
     /// forge-config: ci.fuzz.runs = 16
     function testFuzz_PositionsFull(uint256 tokenId) public view override {
         super.testFuzz_PositionsFull(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_TokenOfOwnerByIndex(uint256 tokenId) public view override {
+        super.testFuzz_TokenOfOwnerByIndex(tokenId);
+    }
+}
+
+contract NPMCallerSlipStreamTest is NPMCallerTest {
+    function setUp() public override {
+        dex = DEX.SlipStream;
+        super.setUp();
+    }
+
+    function test_Mint() public override returns (uint256 tokenId) {
+        int24 tick = matchSpacing(currentTick());
+        uint256 amount1Desired = 1e18;
+        address _token1 = token1;
+        deal(_token1, address(this), amount1Desired);
+        NPMCallerWrapper _npmCaller = npmCaller;
+        SafeTransferLib.safeApprove(_token1, address(_npmCaller), amount1Desired);
+        (tokenId, , , ) = _npmCaller.mint(
+            ISlipStreamNPM.MintParams({
+                token0: token0,
+                token1: _token1,
+                tickSpacing: tickSpacingSlipStream,
+                tickLower: tick - tickSpacing,
+                tickUpper: tick,
+                amount0Desired: 0,
+                amount1Desired: amount1Desired,
+                amount0Min: 0,
+                amount1Min: 0,
+                recipient: user,
+                deadline: block.timestamp,
+                sqrtPriceX96: 0
+            })
+        );
+    }
+
+    // Skipping testFuzz_PositionsFull as PositionsFull is not yet implemented for SlipStream.
+    function testFuzz_PositionsFull(uint256 tokenId) public view override {}
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_Positions(uint256 tokenIndex) public view override {
+        tokenIndex = bound(tokenIndex, 1, 10000);
+        uint256 tokenId = npm.tokenByIndex(tokenIndex);
+        SlipStreamPosition memory pos = npmCaller.positionsSlipStream(tokenId);
+        (
+            ,
+            ,
+            address token0,
+            address token1,
+            int24 tickSpacing,
+            int24 tickLower,
+            int24 tickUpper,
+            uint128 liquidity,
+            ,
+            ,
+            ,
+
+        ) = ISlipStreamNPM(address(npm)).positions(tokenId);
+        assertEq(token0, pos.token0, "token0");
+        assertEq(token1, pos.token1, "token1");
+        assertEq(tickSpacing, pos.tickSpacing, "tickSpacing");
+        assertEq(tickLower, pos.tickLower, "tickLower");
+        assertEq(tickUpper, pos.tickUpper, "tickUpper");
+        assertEq(liquidity, pos.liquidity, "liquidity");
+    }
+
+    function testRevert_Positions() public override {
+        vm.expectRevert(bytes("ID"));
+        npmCaller.positions(0);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_GetApproved(uint256 tokenIndex) public view override {
+        tokenIndex = bound(tokenIndex, 1, 10000);
+        uint256 tokenId = npm.tokenByIndex(tokenIndex);
+        address operator = npm.getApproved(tokenId);
+        assertEq(operator, npmCaller.getApproved(tokenId), "getApproved");
+    }
+
+    function testRevert_GetApproved() public override {
+        vm.expectRevert(bytes("NE"));
+        npmCaller.getApproved(0);
+    }
+
+    // The following functions are overridden trivially so the in-line fuzz configuration is applied.
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_BalanceOf(address owner) public view override {
+        super.testFuzz_BalanceOf(owner);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_IsApprovedForAll(uint256 tokenId) public override {
+        super.testFuzz_IsApprovedForAll(tokenId);
+    }
+
+    /// forge-config: default.fuzz.runs = 16
+    /// forge-config: ci.fuzz.runs = 16
+    function testFuzz_OwnerOf(uint256 tokenId) public override {
+        super.testFuzz_OwnerOf(tokenId);
     }
 
     /// forge-config: default.fuzz.runs = 16

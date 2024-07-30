@@ -13,23 +13,23 @@ library SwapMath {
     /// @notice Computes the sqrt price target for the next swap step
     /// @param zeroForOne The direction of the swap, true for token0 to token1, false for token1 to token0
     /// @param sqrtPriceNextX96 The Q64.96 sqrt price for the next initialized tick
-    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this
-    /// value after the swap. If one for zero, the price cannot be greater than this value after the swap
-    /// @return sqrtRatioTargetX96 The price target for the next swap step
-    function getSqrtRatioTarget(
+    /// @param sqrtPriceLimitX96 The Q64.96 sqrt price limit. If zero for one, the price cannot be less than this value
+    /// after the swap. If one for zero, the price cannot be greater than this value after the swap
+    /// @return sqrtPriceTargetX96 The price target for the next swap step
+    function getSqrtPriceTarget(
         bool zeroForOne,
         uint160 sqrtPriceNextX96,
         uint160 sqrtPriceLimitX96
-    ) internal pure returns (uint160 sqrtRatioTargetX96) {
+    ) internal pure returns (uint160 sqrtPriceTargetX96) {
         assembly {
             // a flag to toggle between sqrtPriceNextX96 and sqrtPriceLimitX96
-            // when zeroForOne == true, nextOrLimit reduces to sqrtPriceNextX96 > sqrtPriceLimitX96
-            // sqrtRatioTargetX96 = max(sqrtPriceNextX96, sqrtPriceLimitX96)
-            // when zeroForOne == false, nextOrLimit reduces to sqrtPriceNextX96 <= sqrtPriceLimitX96
-            // sqrtRatioTargetX96 = min(sqrtPriceNextX96, sqrtPriceLimitX96)
-            let nextOrLimit := xor(gt(sqrtPriceNextX96, sqrtPriceLimitX96), iszero(zeroForOne))
+            // when zeroForOne == true, nextOrLimit reduces to sqrtPriceNextX96 >= sqrtPriceLimitX96
+            // sqrtPriceTargetX96 = max(sqrtPriceNextX96, sqrtPriceLimitX96)
+            // when zeroForOne == false, nextOrLimit reduces to sqrtPriceNextX96 < sqrtPriceLimitX96
+            // sqrtPriceTargetX96 = min(sqrtPriceNextX96, sqrtPriceLimitX96)
+            let nextOrLimit := xor(lt(sqrtPriceNextX96, sqrtPriceLimitX96), zeroForOne)
             let symDiff := xor(sqrtPriceNextX96, sqrtPriceLimitX96)
-            sqrtRatioTargetX96 := xor(sqrtPriceLimitX96, mul(symDiff, nextOrLimit))
+            sqrtPriceTargetX96 := xor(sqrtPriceLimitX96, mul(symDiff, nextOrLimit))
         }
     }
 
@@ -52,32 +52,34 @@ library SwapMath {
         uint24 feePips
     ) internal pure returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut, uint256 feeAmount) {
         unchecked {
+            uint256 _feePips = feePips; // cast once and cache
             bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
-            uint256 feeComplement = MAX_FEE_PIPS - feePips;
             bool exactOut = amountRemaining < 0;
-            uint256 amountRemainingAbs;
 
             if (!exactOut) {
-                amountRemainingAbs = uint256(amountRemaining);
-                uint256 amountRemainingLessFee = FullMath.mulDiv(amountRemainingAbs, feeComplement, MAX_FEE_PIPS);
+                uint256 amountRemainingLessFee = FullMath.mulDiv(
+                    uint256(amountRemaining),
+                    MAX_FEE_PIPS - _feePips,
+                    MAX_FEE_PIPS
+                );
                 amountIn = zeroForOne
                     ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)
                     : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, true);
                 if (amountRemainingLessFee >= amountIn) {
                     // `amountIn` is capped by the target price
                     sqrtRatioNextX96 = sqrtRatioTargetX96;
-                    feeAmount = FullMath.mulDivRoundingUp(amountIn, feePips, feeComplement);
+                    feeAmount = FullMath.mulDivRoundingUp(amountIn, _feePips, MAX_FEE_PIPS - _feePips);
                 } else {
                     // exhaust the remaining amount
                     amountIn = amountRemainingLessFee;
                     sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromInput(
                         sqrtRatioCurrentX96,
                         liquidity,
-                        amountIn,
+                        amountRemainingLessFee,
                         zeroForOne
                     );
                     // we didn't reach the target, so take the remainder of the maximum input as fee
-                    feeAmount = amountRemainingAbs - amountIn;
+                    feeAmount = uint256(amountRemaining) - amountIn;
                 }
                 amountOut = zeroForOne
                     ? SqrtPriceMath.getAmount1Delta(sqrtRatioNextX96, sqrtRatioCurrentX96, liquidity, false)
@@ -86,13 +88,12 @@ library SwapMath {
                 amountOut = zeroForOne
                     ? SqrtPriceMath.getAmount1Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, false)
                     : SqrtPriceMath.getAmount0Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, false);
-                amountRemainingAbs = uint256(-amountRemaining);
-                if (amountRemainingAbs >= amountOut) {
+                if (uint256(-amountRemaining) >= amountOut) {
                     // `amountOut` is capped by the target price
                     sqrtRatioNextX96 = sqrtRatioTargetX96;
                 } else {
                     // cap the output amount to not exceed the remaining output amount
-                    amountOut = amountRemainingAbs;
+                    amountOut = uint256(-amountRemaining);
                     sqrtRatioNextX96 = SqrtPriceMath.getNextSqrtPriceFromOutput(
                         sqrtRatioCurrentX96,
                         liquidity,
@@ -103,7 +104,7 @@ library SwapMath {
                 amountIn = zeroForOne
                     ? SqrtPriceMath.getAmount0Delta(sqrtRatioNextX96, sqrtRatioCurrentX96, liquidity, true)
                     : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioNextX96, liquidity, true);
-                feeAmount = FullMath.mulDivRoundingUp(amountIn, feePips, feeComplement);
+                feeAmount = FullMath.mulDivRoundingUp(amountIn, _feePips, MAX_FEE_PIPS - _feePips);
             }
         }
     }
@@ -126,8 +127,11 @@ library SwapMath {
         uint256 feePips
     ) internal pure returns (uint160 sqrtRatioNextX96, uint256 amountIn, uint256 amountOut) {
         bool zeroForOne = sqrtRatioCurrentX96 >= sqrtRatioTargetX96;
-        uint256 feeComplement = UnsafeMath.sub(MAX_FEE_PIPS, feePips);
-        uint256 amountRemainingLessFee = FullMath.mulDiv(amountRemaining, feeComplement, MAX_FEE_PIPS);
+        uint256 amountRemainingLessFee = FullMath.mulDiv(
+            amountRemaining,
+            UnsafeMath.sub(MAX_FEE_PIPS, feePips),
+            MAX_FEE_PIPS
+        );
         amountIn = zeroForOne
             ? SqrtPriceMath.getAmount0Delta(sqrtRatioTargetX96, sqrtRatioCurrentX96, liquidity, true)
             : SqrtPriceMath.getAmount1Delta(sqrtRatioCurrentX96, sqrtRatioTargetX96, liquidity, true);
@@ -135,7 +139,7 @@ library SwapMath {
             // `amountIn` is capped by the target price
             sqrtRatioNextX96 = sqrtRatioTargetX96;
             // add the fee amount
-            amountIn = FullMath.mulDivRoundingUp(amountIn, MAX_FEE_PIPS, feeComplement);
+            amountIn = FullMath.mulDivRoundingUp(amountIn, MAX_FEE_PIPS, UnsafeMath.sub(MAX_FEE_PIPS, feePips));
         } else {
             // exhaust the remaining amount
             amountIn = amountRemaining;

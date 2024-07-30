@@ -12,20 +12,39 @@ contract TickBitmapWrapper is ITickBitmap {
     mapping(int16 => uint256) public bitmap;
 
     function flipTick(int24 tick) external {
-        bitmap.flipTick(tick, 1);
+        flipTick(tick, 1);
+    }
+
+    function flipTick(int24 tick, int24 tickSpacing) public {
+        bitmap.flipTick(tick, tickSpacing);
     }
 
     function nextInitializedTickWithinOneWord(
         int24 tick,
         bool lte
     ) external view returns (int24 next, bool initialized) {
-        return bitmap.nextInitializedTickWithinOneWord(tick, 1, lte);
+        return nextInitializedTickWithinOneWord(tick, 1, lte);
+    }
+
+    function nextInitializedTickWithinOneWord(
+        int24 tick,
+        int24 tickSpacing,
+        bool lte
+    ) public view returns (int24 next, bool initialized) {
+        return bitmap.nextInitializedTickWithinOneWord(tick, tickSpacing, lte);
+    }
+
+    function isInitialized(int24 tick, int24 tickSpacing) public view returns (bool) {
+        unchecked {
+            if (tick % tickSpacing != 0) return false;
+            (int16 wordPos, uint8 bitPos) = TickBitmap.position(tick / tickSpacing);
+            return bitmap[wordPos] & (1 << bitPos) != 0;
+        }
     }
 
     // returns whether the given tick is initialized
-    function isInitialized(int24 tick) external view returns (bool) {
-        (int24 next, bool initialized) = bitmap.nextInitializedTickWithinOneWord(tick, 1, true);
-        return next == tick ? initialized : false;
+    function isInitialized(int24 tick) public view returns (bool) {
+        return isInitialized(tick, 1);
     }
 }
 
@@ -41,19 +60,13 @@ contract TickBitmapTest is BaseTest {
     }
 
     function testFuzz_Position(int24 tick) public pure {
-        int16 wordPos;
-        uint8 bitPos;
-        assembly {
-            // signed arithmetic shift right
-            wordPos := sar(8, tick)
-            bitPos := and(tick, 0xff)
-        }
-        assertEq(int256(wordPos), tick >> 8);
+        (int16 wordPos, uint8 bitPos) = TickBitmap.position(tick);
+        assertEq(wordPos, tick >> 8);
         assertEq(bitPos, uint8(int8(tick % 256)));
     }
 
     function testFuzz_Compress(int24 tick, int24 _tickSpacing) public pure {
-        _tickSpacing = int24(bound(_tickSpacing, 1, 200));
+        _tickSpacing = int24(bound(_tickSpacing, 1, type(int24).max));
         int24 compressed = tick / _tickSpacing;
         if (tick < 0 && tick % _tickSpacing != 0) compressed--;
         assertEq(TickBitmap.compress(tick, _tickSpacing), compressed);
@@ -64,6 +77,31 @@ contract TickBitmapTest is BaseTest {
         wrapper.flipTick(tick);
         ogWrapper.flipTick(tick);
         assertEq(wrapper.isInitialized(tick), ogWrapper.isInitialized(tick));
+    }
+
+    function testFuzz_NextInitializedTickWithinOneWord(
+        int24 tick,
+        int24 tickSpacing,
+        uint8 nextBitPos,
+        bool lte
+    ) public {
+        tick = int24(bound(tick, TickMath.MIN_TICK, TickMath.MAX_TICK));
+        tickSpacing = int24(bound(tickSpacing, 1, type(int16).max));
+        int24 compressed = TickBitmap.compress(tick, tickSpacing);
+        if (!lte) ++compressed;
+        (int16 wordPos, uint8 bitPos) = TickBitmap.position(compressed);
+
+        if (lte) {
+            nextBitPos = uint8(bound(nextBitPos, 0, bitPos));
+        } else {
+            nextBitPos = uint8(bound(nextBitPos, bitPos, 255));
+        }
+        // Choose the next initialized tick within one word at random and flip it.
+        int24 nextInitializedTick = ((int24(wordPos) << 8) + int24(uint24(nextBitPos))) * tickSpacing;
+        wrapper.flipTick(nextInitializedTick, tickSpacing);
+        (int24 next, bool initialized) = wrapper.nextInitializedTickWithinOneWord(tick, tickSpacing, lte);
+        assertEq(initialized, true);
+        assertEq(next, nextInitializedTick);
     }
 
     function testFuzz_NextInitializedTickWithinOneWord(int24 tick, uint8 nextBitPos, bool lte) public {

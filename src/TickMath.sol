@@ -49,18 +49,12 @@ library TickMath {
                 }
             }
 
-            // Equivalent: ratio = 2**128 / sqrt(1.0001) if absTick & 0x1 else 1 << 128
+            // Equivalent to:
+            //     ratio = absTick & 0x1 != 0 ? 0xfffcb933bd6fad37aa2d162d1a594001 : 0x100000000000000000000000000000000;
+            //     or ratio = int(2**128 / sqrt(1.0001)) if (absTick & 0x1) else 1 << 128
             uint256 ratio;
             assembly {
-                ratio := and(
-                    shr(
-                        // 128 if absTick & 0x1 else 0
-                        shl(7, and(absTick, 0x1)),
-                        // upper 128 bits of 2**256 / sqrt(1.0001) where the 128th bit is 1
-                        0xfffcb933bd6fad37aa2d162d1a59400100000000000000000000000000000000
-                    ),
-                    0x1ffffffffffffffffffffffffffffffff // mask lower 129 bits
-                )
+                ratio := xor(shl(128, 1), mul(xor(shl(128, 1), 0xfffcb933bd6fad37aa2d162d1a594001), and(absTick, 0x1)))
             }
             // Iterate through 1th to 19th bit of absTick because MAX_TICK < 2**20
             // Equivalent to:
@@ -87,18 +81,15 @@ library TickMath {
             if (absTick & 0x40000 != 0) ratio = (ratio * 0x2216e584f5fa1ea926041bedfe98) >> 128;
             if (absTick & 0x80000 != 0) ratio = (ratio * 0x48a170391f7dc42444e8fa2) >> 128;
 
-            // if (tick > 0) ratio = type(uint256).max / ratio;
             assembly {
+                // if (tick > 0) ratio = type(uint256).max / ratio;
                 if sgt(tick, 0) {
                     ratio := div(not(0), ratio)
                 }
-            }
-
-            // this divides by 1<<32 rounding up to go from a Q128.128 to a Q128.96.
-            // we then downcast because we know the result always fits within 160 bits due to our tick input constraint
-            // we round up in the division so getTickAtSqrtRatio of the output price is always consistent
-            assembly {
-                sqrtPriceX96 := shr(32, add(ratio, 0xffffffff))
+                // this divides by 1<<32 rounding up to go from a Q128.128 to a Q128.96.
+                // we then downcast because we know the result always fits within 160 bits due to our tick input constraint
+                // we round up in the division so getTickAtSqrtRatio of the output price is always consistent
+                sqrtPriceX96 := shr(32, add(ratio, sub(shl(32, 1), 1)))
             }
         }
     }
@@ -175,67 +166,67 @@ library TickMath {
             // f = (r**2 >= 2**255)
             let f := slt(square, 0)
             // r = r**2 >> 128 if r**2 >= 2**255 else r**2 >> 127
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(63, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(62, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(61, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(60, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(59, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(58, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(57, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(56, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(55, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(54, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(53, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(52, f), log_2X64)
 
             square := mul(r, r)
             f := slt(square, 0)
-            r := shr(add(127, f), square)
+            r := shr(127, shr(f, square))
             log_2X64 := or(shl(51, f), log_2X64)
 
             log_2X64 := or(shl(50, slt(mul(r, r), 0)), log_2X64)
