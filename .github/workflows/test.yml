@@ -44,3 +44,10 @@ jobs:
           forge --version
           forge test -vvv
         id: test
+
+      - name: Build with IR
+        run: forge build --via-ir --skip src/test/*.sol
+
+      - name: Run Forge tests with IR
+        run: forge test --via-ir --skip src/test/*.sol
+        id: test-ir
